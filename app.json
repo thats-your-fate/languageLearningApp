@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Language Flashcards",
+    "slug": "language-flashcards",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "icon": "./assets/icon.png"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ff8a22"
+      }
+    },
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}
