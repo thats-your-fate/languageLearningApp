@@ -45,7 +45,7 @@ export type AppSettings = {
   sourceLanguage: LanguageCode;
   targetLanguage: LanguageCode;
   activeLevel: StarterLevel | "All";
-  themeMode: "dark" | "light";
+  themeMode: "system" | "dark" | "light";
   aiFeedbackLanguage: "source" | "target" | "mixed";
   autoPlayAudio: boolean;
   enableAiExplanations: boolean;

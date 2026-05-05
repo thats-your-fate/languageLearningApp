@@ -15,3 +15,5 @@ scripts/.vocabulary_generation_checkpoint.json
 scripts/.vocabulary_qa_checkpoint.json
 scripts/vocabulary_qa_report.json
 src/data/vocabulary.fixed.json
+ios
+android 

@@ -55,7 +55,7 @@ export function AppNavigator() {
 }
 
 function ThemedNavigator() {
-  const { mode, theme } = useThemeMode();
+  const { resolvedMode, theme } = useThemeMode();
   const [initialRoute, setInitialRoute] = useState<"Onboarding" | "Learn" | null>(null);
 
   useEffect(() => {
@@ -69,7 +69,7 @@ function ThemedNavigator() {
   }
 
   return (
-    <NavigationContainer theme={mode === "dark" ? DarkTheme : DefaultTheme}>
+    <NavigationContainer theme={resolvedMode === "dark" ? DarkTheme : DefaultTheme}>
       <Stack.Navigator
         initialRouteName={initialRoute}
         screenOptions={{

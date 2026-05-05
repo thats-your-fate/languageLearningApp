@@ -7,7 +7,7 @@ import { Screen } from "../components/Screen";
 import { useI18n } from "../i18n";
 import { updateSettings, getSettings } from "../services/settingsService";
 import { getAvailableStarterLevels } from "../services/vocabularyService";
-import { useAppTheme, useThemeMode } from "../theme";
+import { ThemeMode, useAppTheme, useThemeMode } from "../theme";
 import { AppSettings, LanguageCode, STARTER_LEVELS, StarterLevel } from "../types/vocabulary";
 
 const languageOptions: { code: LanguageCode; flag: string }[] = [
@@ -24,7 +24,7 @@ const levelOptions: (StarterLevel | "All")[] = [...availableLevels, "All"];
 
 export function SettingsScreen() {
   const theme = useAppTheme();
-  const { mode, toggleMode } = useThemeMode();
+  const { mode, setMode, toggleMode } = useThemeMode();
   const { setLanguage, t } = useI18n();
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [draft, setDraft] = useState<AppSettings | null>(null);
@@ -40,7 +40,7 @@ export function SettingsScreen() {
 
   async function save() {
     if (!draft) return;
-    const next = await updateSettings({ ...draft, themeMode: mode });
+    const next = await updateSettings(draft);
     setLanguage(next.sourceLanguage);
     setSettings(next);
     setDraft(next);
@@ -48,8 +48,15 @@ export function SettingsScreen() {
   }
 
   async function toggleAppearance() {
-    const nextMode = mode === "dark" ? "light" : "dark";
+    const nextMode: ThemeMode = mode === "system" ? "light" : mode === "light" ? "dark" : "system";
     await toggleMode();
+    if (draft) {
+      setDraft({ ...draft, themeMode: nextMode });
+    }
+  }
+
+  async function selectAppearance(nextMode: ThemeMode) {
+    await setMode(nextMode);
     if (draft) {
       setDraft({ ...draft, themeMode: nextMode });
     }
@@ -73,7 +80,7 @@ export function SettingsScreen() {
           onPress={toggleAppearance}
           style={[styles.themeButton, { backgroundColor: theme.surfaceMuted, borderColor: theme.border }]}
         >
-          <Ionicons name={mode === "dark" ? "sunny-outline" : "moon-outline"} size={22} color={theme.text} />
+          <Ionicons name={mode === "system" ? "phone-portrait-outline" : mode === "dark" ? "sunny-outline" : "moon-outline"} size={22} color={theme.text} />
         </Pressable>
       }
     >
@@ -94,34 +101,40 @@ export function SettingsScreen() {
         selected={draft.activeLevel}
         onSelect={(activeLevel) => setDraft({ ...draft, activeLevel })}
       />
-      <ThemeGroup selected={mode} onToggle={toggleAppearance} />
+      <ThemeGroup selected={mode} onSelect={selectAppearance} />
 
       <AppButton title={t("common.save")} onPress={save} style={styles.save} />
     </Screen>
   );
 }
 
-function ThemeGroup({ selected, onToggle }: { selected: "dark" | "light"; onToggle: () => void }) {
+function ThemeGroup({ selected, onSelect }: { selected: ThemeMode; onSelect: (mode: ThemeMode) => void }) {
   const theme = useAppTheme();
   const { t } = useI18n();
   const selectedColors = getSelectedChipColors(theme);
   return (
     <View style={styles.group}>
       <Text style={[styles.groupTitle, { color: theme.text }]}>{t("settings.appearance")}</Text>
-      <Pressable
-        accessibilityRole="button"
-        onPress={onToggle}
-        style={[styles.appearanceToggle, { backgroundColor: theme.surfaceMuted, borderColor: theme.border }]}
-      >
-        <View style={[styles.appearancePill, selected === "light" && { backgroundColor: selectedColors.backgroundColor }]}>
-          <Ionicons name="sunny-outline" size={18} color={selected === "light" ? selectedColors.color : theme.textMuted} />
-          <Text style={[styles.appearanceText, { color: selected === "light" ? selectedColors.color : theme.textMuted }]}>{t("settings.light")}</Text>
-        </View>
-        <View style={[styles.appearancePill, selected === "dark" && { backgroundColor: "#3a3d48" }]}>
-          <Ionicons name="moon-outline" size={18} color={selected === "dark" ? "#ffffff" : theme.textMuted} />
-          <Text style={[styles.appearanceText, { color: selected === "dark" ? "#ffffff" : theme.textMuted }]}>{t("settings.dark")}</Text>
-        </View>
-      </Pressable>
+      <View style={[styles.appearanceToggle, { backgroundColor: theme.surfaceMuted, borderColor: theme.border }]}>
+        {[
+          { mode: "system" as const, icon: "phone-portrait-outline" as const, label: t("settings.system") },
+          { mode: "light" as const, icon: "sunny-outline" as const, label: t("settings.light") },
+          { mode: "dark" as const, icon: "moon-outline" as const, label: t("settings.dark") }
+        ].map((option) => {
+          const active = selected === option.mode;
+          return (
+            <Pressable
+              accessibilityRole="button"
+              key={option.mode}
+              onPress={() => onSelect(option.mode)}
+              style={[styles.appearancePill, active && { backgroundColor: selectedColors.backgroundColor }]}
+            >
+              <Ionicons name={option.icon} size={17} color={active ? selectedColors.color : theme.textMuted} />
+              <Text style={[styles.appearanceText, { color: active ? selectedColors.color : theme.textMuted }]}>{option.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }

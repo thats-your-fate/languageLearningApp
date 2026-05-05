@@ -1,4 +1,5 @@
 import { createContext, createElement, ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { useColorScheme } from "react-native";
 import { getSettings, updateSettings } from "./services/settingsService";
 import { AppSettings } from "./types/vocabulary";
 
@@ -29,6 +30,7 @@ export type ThemeMode = AppSettings["themeMode"];
 
 type ThemeContextValue = {
   mode: ThemeMode;
+  resolvedMode: "dark" | "light";
   theme: AppTheme;
   setMode: (mode: ThemeMode) => Promise<void>;
   toggleMode: () => Promise<void>;
@@ -87,7 +89,9 @@ export function getTheme(isDark: boolean): AppTheme {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>("dark");
+  const systemScheme = useColorScheme();
+  const [mode, setModeState] = useState<ThemeMode>("system");
+  const resolvedMode: "dark" | "light" = mode === "system" ? (systemScheme === "dark" ? "dark" : "light") : mode;
 
   useEffect(() => {
     getSettings().then((settings) => setModeState(settings.themeMode));
@@ -100,16 +104,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
 
     async function toggleMode() {
-      await setMode(mode === "dark" ? "light" : "dark");
+      const nextMode: ThemeMode = mode === "system" ? "light" : mode === "light" ? "dark" : "system";
+      await setMode(nextMode);
     }
 
     return {
       mode,
-      theme: getTheme(mode === "dark"),
+      resolvedMode,
+      theme: getTheme(resolvedMode === "dark"),
       setMode,
       toggleMode
     };
-  }, [mode]);
+  }, [mode, resolvedMode]);
 
   return createElement(ThemeContext.Provider, { value }, children);
 }
@@ -126,7 +132,8 @@ function useThemeContext(): ThemeContextValue {
   const context = useContext(ThemeContext);
   if (!context) {
     return {
-      mode: "dark",
+      mode: "system",
+      resolvedMode: "dark",
       theme: getTheme(true),
       setMode: async () => undefined,
       toggleMode: async () => undefined

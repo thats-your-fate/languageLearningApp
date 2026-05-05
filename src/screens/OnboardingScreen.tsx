@@ -40,7 +40,7 @@ export function OnboardingScreen({ navigation, route }: Props) {
   async function finish() {
     const nextSettings: AppSettings = {
       ...(initial ?? {
-        themeMode: "dark",
+        themeMode: "system",
         aiFeedbackLanguage: "mixed",
         autoPlayAudio: false,
         enableAiExplanations: true

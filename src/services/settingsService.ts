@@ -7,7 +7,7 @@ export const defaultSettings: AppSettings = {
   sourceLanguage: "en",
   targetLanguage: "pt-BR",
   activeLevel: "A1",
-  themeMode: "dark",
+  themeMode: "system",
   aiFeedbackLanguage: "mixed",
   autoPlayAudio: false,
   enableAiExplanations: true,

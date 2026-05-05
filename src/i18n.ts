@@ -38,6 +38,7 @@ type TranslationKey =
   | "settings.learningLanguage"
   | "settings.learningLevel"
   | "settings.appearance"
+  | "settings.system"
   | "settings.light"
   | "settings.dark"
   | "settings.savedMessage"
@@ -173,6 +174,7 @@ const dictionaries: Record<"en" | "de" | "pt-BR" | "it" | "fr", Dictionary> = {
     "settings.learningLanguage": "Learning language",
     "settings.learningLevel": "Learning level",
     "settings.appearance": "Appearance",
+    "settings.system": "System",
     "settings.light": "Light",
     "settings.dark": "Dark",
     "settings.savedMessage": "Language settings updated.",
@@ -297,6 +299,7 @@ const dictionaries: Record<"en" | "de" | "pt-BR" | "it" | "fr", Dictionary> = {
     "settings.learningLanguage": "Lernsprache",
     "settings.learningLevel": "Lernniveau",
     "settings.appearance": "Darstellung",
+    "settings.system": "System",
     "settings.light": "Hell",
     "settings.dark": "Dunkel",
     "settings.savedMessage": "Spracheinstellungen aktualisiert.",
@@ -418,6 +421,7 @@ dictionaries["pt-BR"] = {
   "settings.learningLanguage": "Idioma de estudo",
   "settings.learningLevel": "Nível",
   "settings.appearance": "Aparência",
+  "settings.system": "Sistema",
   "settings.light": "Claro",
   "settings.dark": "Escuro",
   "settings.savedMessage": "Configurações atualizadas.",
@@ -542,6 +546,7 @@ dictionaries.it = {
   "settings.learningLanguage": "Lingua di studio",
   "settings.learningLevel": "Livello",
   "settings.appearance": "Aspetto",
+  "settings.system": "Sistema",
   "settings.light": "Chiaro",
   "settings.dark": "Scuro",
   "settings.savedMessage": "Impostazioni aggiornate.",
@@ -666,6 +671,7 @@ dictionaries.fr = {
   "settings.learningLanguage": "Langue apprise",
   "settings.learningLevel": "Niveau",
   "settings.appearance": "Apparence",
+  "settings.system": "Système",
   "settings.light": "Clair",
   "settings.dark": "Sombre",
   "settings.savedMessage": "Paramètres mis à jour.",
