@@ -2,6 +2,10 @@
   "name": "language-flashcards",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": "22.x",
+    "npm": ">=10"
+  },
   "main": "expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
