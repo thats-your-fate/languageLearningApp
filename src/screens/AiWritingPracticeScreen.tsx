@@ -1,12 +1,12 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, TextInput, useColorScheme, View } from "react-native";
+import { ActivityIndicator, Keyboard, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { AppButton } from "../components/AppButton";
 import { LearnerBadge } from "../components/LearnerBadge";
 import { Screen } from "../components/Screen";
 import { useI18n } from "../i18n";
 import { RootStackParamList } from "../navigation/AppNavigator";
-import { evaluateWritingAnswer } from "../services/aiPracticeService";
+import { evaluateWritingAnswerStream, explainAiFeedbackInSourceLanguage } from "../services/aiPracticeService";
 import { getAllProgress } from "../services/progressService";
 import { getSettings } from "../services/settingsService";
 import { getCardById, getPracticeCards, shuffleCards, toPracticeCardView } from "../services/vocabularyService";
@@ -19,13 +19,16 @@ type Props = NativeStackScreenProps<RootStackParamList, "AiWritingPractice">;
 export function AiWritingPracticeScreen({ navigation, route }: Props) {
   const theme = useAppTheme();
   const { t } = useI18n();
-  const streamTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const tokenBuffer = useRef("");
+  const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [cards, setCards] = useState<PracticeCardView[]>([]);
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState("");
   const [result, setResult] = useState<AiPracticeResult | null>(null);
   const [streamedFeedback, setStreamedFeedback] = useState("");
+  const [sourceExplanation, setSourceExplanation] = useState("");
+  const [explaining, setExplaining] = useState(false);
   const [loading, setLoading] = useState(false);
   const card = cards[index];
 
@@ -48,61 +51,87 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
     });
 
     return () => {
-      if (streamTimer.current) {
-        clearInterval(streamTimer.current);
-      }
+      clearStreamBuffer();
     };
   }, [route.params?.cardId]);
 
   async function submit(userAnswer = answer) {
     if (!card || !settings) return;
     Keyboard.dismiss();
-    if (streamTimer.current) {
-      clearInterval(streamTimer.current);
-    }
+    clearStreamBuffer();
     setLoading(true);
     setResult(null);
     setStreamedFeedback("");
-    const nextResult = await evaluateWritingAnswer(card, userAnswer, settings.targetLanguage);
+    setSourceExplanation("");
+    let gotStream = false;
+    const nextResult = await evaluateWritingAnswerStream(
+      card,
+      userAnswer,
+      settings.targetLanguage,
+      (token) => {
+        gotStream = true;
+        enqueueStreamToken(token);
+      },
+      (partialResult) => {
+        setResult(partialResult);
+      }
+    );
+    flushStreamBuffer();
     setResult(nextResult);
-    streamRecommendation(nextResult);
+    if (!gotStream) {
+      setStreamedFeedback(formatResultFeedback(nextResult));
+    }
     setLoading(false);
   }
 
-  function streamRecommendation(nextResult: AiPracticeResult) {
-    const text = [
-      nextResult.feedback,
-      nextResult.grammarNotes.length > 0 ? `\n\nGrammar notes\n${nextResult.grammarNotes.map((note) => `• ${note}`).join("\n")}` : ""
-    ]
-      .filter(Boolean)
-      .join("");
-    let cursor = 0;
-    streamTimer.current = setInterval(() => {
-      cursor += 3;
-      setStreamedFeedback(text.slice(0, cursor));
-      if (cursor >= text.length && streamTimer.current) {
-        clearInterval(streamTimer.current);
-      }
-    }, 24);
-  }
-
   function nextCard() {
-    if (streamTimer.current) {
-      clearInterval(streamTimer.current);
-    }
+    clearStreamBuffer();
     setResult(null);
     setStreamedFeedback("");
+    setSourceExplanation("");
     setAnswer("");
     setIndex((current) => (current + 1 >= cards.length ? 0 : current + 1));
   }
 
   function tryAgain() {
-    if (streamTimer.current) {
-      clearInterval(streamTimer.current);
-    }
+    clearStreamBuffer();
     setResult(null);
     setStreamedFeedback("");
+    setSourceExplanation("");
     setAnswer("");
+  }
+
+  async function explainInMyLanguage() {
+    if (!card || !result) return;
+    setExplaining(true);
+    setSourceExplanation(await explainAiFeedbackInSourceLanguage(card, answer, result));
+    setExplaining(false);
+  }
+
+  function enqueueStreamToken(token: string) {
+    tokenBuffer.current += token;
+    if (!flushTimer.current) {
+      flushTimer.current = setTimeout(flushStreamBuffer, 48);
+    }
+  }
+
+  function flushStreamBuffer() {
+    if (flushTimer.current) {
+      clearTimeout(flushTimer.current);
+      flushTimer.current = null;
+    }
+    if (!tokenBuffer.current) return;
+    const chunk = tokenBuffer.current;
+    tokenBuffer.current = "";
+    setStreamedFeedback((current) => current + chunk);
+  }
+
+  function clearStreamBuffer() {
+    if (flushTimer.current) {
+      clearTimeout(flushTimer.current);
+      flushTimer.current = null;
+    }
+    tokenBuffer.current = "";
   }
 
   if (!settings) {
@@ -173,33 +202,56 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
         </View>
       ) : null}
 
-      {loading ? <ActivityIndicator color={theme.primary} /> : null}
-
-      {result ? (
+      {result || streamedFeedback || loading ? (
         <View style={[styles.resultCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.score, { color: result.score >= 0.8 ? theme.success : "#ffd166" }]}>
-            Score: {result.score.toFixed(2)}
+          <View style={styles.scoreRow}>
+            <Text style={[styles.score, { color: result ? (result.score >= 0.8 ? theme.success : "#ffd166") : theme.textMuted }]}>
+              {result ? `Score: ${Math.round(result.score * 100)}%` : "Score: checking..."}
+            </Text>
+            {loading && !result ? <ActivityIndicator color={theme.primary} /> : null}
+          </View>
+          <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
+            {t(result?.source === "fallback" ? "aiWriting.offlineFeedback" : "aiWriting.feedback")}
           </Text>
-          <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>{t("aiWriting.feedback")}</Text>
+          {result?.source === "fallback" && result.offlineReason ? (
+            <Text style={[styles.offlineReason, { color: theme.textMuted }]}>
+              {result.offlineReason}
+            </Text>
+          ) : null}
           <Text
             style={[
               styles.streamed,
-              result.score < 0.8 && styles.streamedIssue,
+              result && result.score < 0.8 && styles.streamedIssue,
               { color: theme.text }
             ]}
           >
             {streamedFeedback}
           </Text>
-          {result.correctedAnswer ? (
+          {result?.correctedAnswer ? (
             <>
               <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>{t("aiWriting.exampleSentence")}</Text>
               <Text style={[styles.correction, { color: theme.text }]}>{result.correctedAnswer}</Text>
             </>
           ) : null}
-          <View style={styles.resultButtons}>
-            <AppButton title={t("common.tryAgain")} variant="secondary" onPress={tryAgain} style={styles.resultButton} />
-            <AppButton title={t("common.next")} onPress={nextCard} style={styles.resultButton} />
-          </View>
+          {result ? (
+            <>
+              <AppButton
+                title={explaining ? t("common.loading") : t("aiWriting.explainInMyLanguage")}
+                variant="secondary"
+                onPress={explainInMyLanguage}
+              />
+              {sourceExplanation ? (
+                <>
+                  <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>{t("aiWriting.explanation")}</Text>
+                  <Text style={[styles.sourceExplanation, { color: theme.text }]}>{sourceExplanation}</Text>
+                </>
+              ) : null}
+              <View style={styles.resultButtons}>
+                <AppButton title={t("common.tryAgain")} variant="secondary" onPress={tryAgain} style={styles.resultButton} />
+                <AppButton title={t("common.next")} onPress={nextCard} style={styles.resultButton} />
+              </View>
+            </>
+          ) : null}
         </View>
       ) : null}
 
@@ -212,6 +264,15 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
       </Pressable>
     </Screen>
   );
+}
+
+function formatResultFeedback(result: AiPracticeResult) {
+  return [
+    result.feedback,
+    result.grammarNotes.length > 0 ? `\n\nGrammar notes\n${result.grammarNotes.map((note) => `• ${note}`).join("\n")}` : ""
+  ]
+    .filter(Boolean)
+    .join("");
 }
 
 const styles = StyleSheet.create({
@@ -233,6 +294,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "800",
     lineHeight: 21
+  },
+  offlineReason: {
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 16
   },
   progress: {
     fontSize: 14,
@@ -279,8 +345,14 @@ const styles = StyleSheet.create({
     padding: 14
   },
   score: {
-    fontSize: 18,
-    fontWeight: "900"
+    fontSize: 30,
+    fontWeight: "900",
+    lineHeight: 36
+  },
+  scoreRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 10
   },
   sectionLabel: {
     fontSize: 13,
@@ -295,6 +367,10 @@ const styles = StyleSheet.create({
   speakingText: {
     fontSize: 14,
     fontWeight: "800"
+  },
+  sourceExplanation: {
+    fontSize: 15,
+    lineHeight: 21
   },
   streamed: {
     fontSize: 17,

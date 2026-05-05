@@ -107,12 +107,16 @@ type TranslationKey =
   | "aiWriting.reference"
   | "aiWriting.placeholder"
   | "aiWriting.feedback"
+  | "aiWriting.offlineFeedback"
+  | "aiWriting.explainInMyLanguage"
+  | "aiWriting.explanation"
   | "aiWriting.exampleSentence"
   | "aiWriting.practiceSpeaking"
   | "aiSpeaking.title"
   | "aiSpeaking.loading"
   | "aiSpeaking.speakSentence"
   | "aiSpeaking.startRecording"
+  | "aiSpeaking.submitRecording"
   | "aiSpeaking.transcriptPlaceholder"
   | "aiSpeaking.submitTranscript"
   | "aiSpeaking.playCorrect"
@@ -243,13 +247,17 @@ const dictionaries: Record<"en" | "de" | "pt-BR" | "it" | "fr", Dictionary> = {
     "aiWriting.reference": "Reference example (your language, optional)",
     "aiWriting.placeholder": "Write your sentence",
     "aiWriting.feedback": "AI feedback",
+    "aiWriting.offlineFeedback": "Offline feedback",
+    "aiWriting.explainInMyLanguage": "Explain in my language",
+    "aiWriting.explanation": "Explanation",
     "aiWriting.exampleSentence": "Example sentence",
     "aiWriting.practiceSpeaking": "Practice this sentence by speaking",
     "aiSpeaking.title": "AI Speaking",
     "aiSpeaking.loading": "Loading AI speaking practice...",
     "aiSpeaking.speakSentence": "Speak this sentence",
     "aiSpeaking.startRecording": "Start recording",
-    "aiSpeaking.transcriptPlaceholder": "Typed transcript fallback",
+    "aiSpeaking.submitRecording": "Submit recording",
+    "aiSpeaking.transcriptPlaceholder": "Transcript",
     "aiSpeaking.submitTranscript": "Submit transcript",
     "aiSpeaking.playCorrect": "Play correct sentence",
     "card.notFound": "Card not found.",
@@ -368,12 +376,16 @@ const dictionaries: Record<"en" | "de" | "pt-BR" | "it" | "fr", Dictionary> = {
     "aiWriting.reference": "Referenzbeispiel (deine Sprache, optional)",
     "aiWriting.placeholder": "Schreibe deinen Satz",
     "aiWriting.feedback": "KI-Feedback",
+    "aiWriting.offlineFeedback": "Offline-Feedback",
+    "aiWriting.explainInMyLanguage": "In meiner Sprache erklären",
+    "aiWriting.explanation": "Erklärung",
     "aiWriting.exampleSentence": "Beispielsatz",
     "aiWriting.practiceSpeaking": "Diesen Satz sprechen üben",
     "aiSpeaking.title": "KI-Sprechen",
     "aiSpeaking.loading": "KI-Sprechübung wird geladen...",
     "aiSpeaking.speakSentence": "Sprich diesen Satz",
     "aiSpeaking.startRecording": "Aufnahme starten",
+    "aiSpeaking.submitRecording": "Aufnahme senden",
     "aiSpeaking.transcriptPlaceholder": "Getipptes Transkript",
     "aiSpeaking.submitTranscript": "Transkript senden",
     "aiSpeaking.playCorrect": "Richtigen Satz abspielen",
@@ -487,12 +499,16 @@ dictionaries["pt-BR"] = {
   "aiWriting.reference": "Exemplo de referência (seu idioma, opcional)",
   "aiWriting.placeholder": "Escreva sua frase",
   "aiWriting.feedback": "Feedback da IA",
+  "aiWriting.offlineFeedback": "Feedback offline",
+  "aiWriting.explainInMyLanguage": "Explicar no meu idioma",
+  "aiWriting.explanation": "Explicação",
   "aiWriting.exampleSentence": "Frase de exemplo",
   "aiWriting.practiceSpeaking": "Praticar esta frase falando",
   "aiSpeaking.title": "Fala com IA",
   "aiSpeaking.loading": "Carregando prática de fala com IA...",
   "aiSpeaking.speakSentence": "Fale esta frase",
   "aiSpeaking.startRecording": "Iniciar gravação",
+  "aiSpeaking.submitRecording": "Enviar gravação",
   "aiSpeaking.transcriptPlaceholder": "Transcrição digitada",
   "aiSpeaking.submitTranscript": "Enviar transcrição",
   "aiSpeaking.playCorrect": "Ouvir frase correta",
@@ -612,12 +628,16 @@ dictionaries.it = {
   "aiWriting.reference": "Esempio di riferimento (la tua lingua, opzionale)",
   "aiWriting.placeholder": "Scrivi la tua frase",
   "aiWriting.feedback": "Feedback AI",
+  "aiWriting.offlineFeedback": "Feedback offline",
+  "aiWriting.explainInMyLanguage": "Spiega nella mia lingua",
+  "aiWriting.explanation": "Spiegazione",
   "aiWriting.exampleSentence": "Frase di esempio",
   "aiWriting.practiceSpeaking": "Pratica questa frase parlando",
   "aiSpeaking.title": "Parlato AI",
   "aiSpeaking.loading": "Caricamento pratica parlato AI...",
   "aiSpeaking.speakSentence": "Pronuncia questa frase",
   "aiSpeaking.startRecording": "Avvia registrazione",
+  "aiSpeaking.submitRecording": "Invia registrazione",
   "aiSpeaking.transcriptPlaceholder": "Trascrizione digitata",
   "aiSpeaking.submitTranscript": "Invia trascrizione",
   "aiSpeaking.playCorrect": "Riproduci frase corretta",
@@ -737,12 +757,16 @@ dictionaries.fr = {
   "aiWriting.reference": "Exemple de référence (ta langue, facultatif)",
   "aiWriting.placeholder": "Écris ta phrase",
   "aiWriting.feedback": "Retour IA",
+  "aiWriting.offlineFeedback": "Retour hors ligne",
+  "aiWriting.explainInMyLanguage": "Expliquer dans ma langue",
+  "aiWriting.explanation": "Explication",
   "aiWriting.exampleSentence": "Phrase exemple",
   "aiWriting.practiceSpeaking": "Pratiquer cette phrase à l’oral",
   "aiSpeaking.title": "Oral IA",
   "aiSpeaking.loading": "Chargement de la pratique orale IA...",
   "aiSpeaking.speakSentence": "Dis cette phrase",
   "aiSpeaking.startRecording": "Démarrer l’enregistrement",
+  "aiSpeaking.submitRecording": "Envoyer l’enregistrement",
   "aiSpeaking.transcriptPlaceholder": "Transcription tapée",
   "aiSpeaking.submitTranscript": "Envoyer la transcription",
   "aiSpeaking.playCorrect": "Lire la phrase correcte",

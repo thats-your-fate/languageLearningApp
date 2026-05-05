@@ -116,6 +116,7 @@ export function PracticeScreen({ navigation, route }: Props) {
     const currentCard = card;
     const shouldRepeat = value === "again" || value === "hard";
     const isStatsPractice = Boolean(route.params?.practiceSet || route.params?.grade);
+    const isCategoryPractice = Boolean(route.params?.category || route.params?.groupedCategories?.length);
     const withoutCurrent = cards.filter((_item, itemIndex) => itemIndex !== index);
     if (!shouldRepeat && withoutCurrent.length === 0) {
       setCards([]);
@@ -126,6 +127,10 @@ export function PracticeScreen({ navigation, route }: Props) {
       setIndex(0);
       if (isStatsPractice) {
         navigation.navigate("Stats");
+      } else if (isCategoryPractice) {
+        navigation.navigate("Learn");
+      } else {
+        navigation.navigate("PracticeHub");
       }
       return;
     }

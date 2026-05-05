@@ -11,6 +11,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#f4f7fb",
       "dark": {
+        "image": "./assets/icon.png",
         "backgroundColor": "#071120"
       }
     },
@@ -20,14 +21,24 @@
     "ios": {
       "supportsTablet": true,
       "icon": "./assets/icon.png",
-      "bundleIdentifier": "com.anonymous.languageflashcards"
+      "bundleIdentifier": "com.anonymous.languageflashcards",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Lighthouse uses the microphone to transcribe your speaking practice.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ff8a22"
       },
-      "package": "com.anonymous.languageflashcards"
+      "package": "com.anonymous.languageflashcards",
+      "usesCleartextTraffic": true,
+      "permissions": [
+        "RECORD_AUDIO"
+      ]
     },
     "plugins": [
       "expo-font"

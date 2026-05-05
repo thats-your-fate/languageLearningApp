@@ -25,6 +25,8 @@ export interface AiPracticeResult {
   hint: string | null;
   grammarNotes: string[];
   acceptedAlternatives: string[];
+  source?: "ai" | "fallback";
+  offlineReason?: string;
 }
 
 export const emptyAiResult: AiPracticeResult = {
@@ -34,5 +36,6 @@ export const emptyAiResult: AiPracticeResult = {
   feedback: "Write an answer and try again.",
   hint: null,
   grammarNotes: [],
-  acceptedAlternatives: []
+  acceptedAlternatives: [],
+  source: "fallback"
 };
