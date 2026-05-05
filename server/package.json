@@ -2,6 +2,10 @@
   "name": "language-flashcards-server",
   "private": true,
   "type": "commonjs",
+  "engines": {
+    "node": "22.x",
+    "npm": ">=10"
+  },
   "scripts": {
     "build": "node --check index.js",
     "start": "node index.js"
