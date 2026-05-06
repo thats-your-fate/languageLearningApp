@@ -32,7 +32,6 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
   const [explaining, setExplaining] = useState(false);
   const [loading, setLoading] = useState(false);
   const [scoreVisible, setScoreVisible] = useState(false);
-  const [scorePreview, setScorePreview] = useState<number | null>(null);
   const card = cards[index];
 
   useEffect(() => {
@@ -67,7 +66,6 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
     setStreamedFeedback("");
     setSourceExplanation("");
     setScoreVisible(true);
-    setScorePreview(null);
     let gotStream = false;
     const nextResult = await evaluateWritingAnswerStream(
       card,
@@ -80,11 +78,6 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
       (partialResult) => {
         setScoreVisible(true);
         setResult(partialResult);
-        setScorePreview(null);
-      },
-      (preview) => {
-        setScoreVisible(true);
-        setScorePreview(preview);
       }
     );
     flushStreamBuffer();
@@ -101,7 +94,6 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
     setStreamedFeedback("");
     setSourceExplanation("");
     setScoreVisible(false);
-    setScorePreview(null);
     setAnswer("");
     setIndex((current) => (current + 1 >= cards.length ? 0 : current + 1));
   }
@@ -112,7 +104,6 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
     setStreamedFeedback("");
     setSourceExplanation("");
     setScoreVisible(false);
-    setScorePreview(null);
     setAnswer("");
   }
 
@@ -157,14 +148,12 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
 
   function scoreLabel() {
     if (result) return `Score: ${Math.round(result.score * 100)}%`;
-    if (scorePreview !== null) return `Score: ~${Math.round(scorePreview * 100)}%`;
     return "Score: ...";
   }
 
   function scoreColor() {
-    const visibleScore = result?.score ?? scorePreview;
-    if (visibleScore === null || visibleScore === undefined) return theme.textMuted;
-    return visibleScore >= 0.8 ? theme.success : "#ffd166";
+    if (!result) return theme.textMuted;
+    return result.score >= 0.8 ? theme.success : "#ffd166";
   }
 
   if (!settings) {

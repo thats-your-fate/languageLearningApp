@@ -30,7 +30,6 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
   const [streamedFeedback, setStreamedFeedback] = useState("");
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
-  const [scorePreview, setScorePreview] = useState<number | null>(null);
 
   useEffect(() => {
     getSettings().then((saved) => {
@@ -104,7 +103,6 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
     clearStreamBuffer();
     setResult(null);
     setStreamedFeedback("");
-    setScorePreview(null);
     setTranscript("");
     setRecording(false);
     setStatus("Record your voice or type the transcript.");
@@ -116,7 +114,6 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
     clearStreamBuffer();
     setResult(null);
     setStreamedFeedback("");
-    setScorePreview(null);
     setLoading(true);
     let gotStream = false;
     const nextResult = await evaluateSpeakingAnswerStream(
@@ -129,10 +126,6 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
       },
       (partialResult) => {
         setResult(partialResult);
-        setScorePreview(null);
-      },
-      (preview) => {
-        setScorePreview(preview);
       }
     );
     flushStreamBuffer();
@@ -178,14 +171,12 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
 
   function scoreLabel() {
     if (result) return `Score: ${Math.round(result.score * 100)}%`;
-    if (scorePreview !== null) return `Score: ~${Math.round(scorePreview * 100)}%`;
     return "Score: checking...";
   }
 
   function scoreColor() {
-    const visibleScore = result?.score ?? scorePreview;
-    if (visibleScore === null || visibleScore === undefined) return theme.textMuted;
-    return visibleScore >= 0.8 ? theme.success : "#ffd166";
+    if (!result) return theme.textMuted;
+    return result.score >= 0.8 ? theme.success : "#ffd166";
   }
 
   function primaryActionTitle() {
