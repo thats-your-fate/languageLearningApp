@@ -21,6 +21,7 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
   const { t } = useI18n();
   const tokenBuffer = useRef("");
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasFlushedStream = useRef(false);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [card, setCard] = useState<PracticeCardView | null>(null);
   const [transcript, setTranscript] = useState("");
@@ -29,6 +30,7 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
   const [streamedFeedback, setStreamedFeedback] = useState("");
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [scorePreview, setScorePreview] = useState<number | null>(null);
 
   useEffect(() => {
     getSettings().then((saved) => {
@@ -102,6 +104,7 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
     clearStreamBuffer();
     setResult(null);
     setStreamedFeedback("");
+    setScorePreview(null);
     setTranscript("");
     setRecording(false);
     setStatus("Record your voice or type the transcript.");
@@ -113,6 +116,7 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
     clearStreamBuffer();
     setResult(null);
     setStreamedFeedback("");
+    setScorePreview(null);
     setLoading(true);
     let gotStream = false;
     const nextResult = await evaluateSpeakingAnswerStream(
@@ -125,6 +129,10 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
       },
       (partialResult) => {
         setResult(partialResult);
+        setScorePreview(null);
+      },
+      (preview) => {
+        setScorePreview(preview);
       }
     );
     flushStreamBuffer();
@@ -138,8 +146,13 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
 
   function enqueueStreamToken(token: string) {
     tokenBuffer.current += token;
+    if (!hasFlushedStream.current) {
+      hasFlushedStream.current = true;
+      flushStreamBuffer();
+      return;
+    }
     if (!flushTimer.current) {
-      flushTimer.current = setTimeout(flushStreamBuffer, 48);
+      flushTimer.current = setTimeout(flushStreamBuffer, 20);
     }
   }
 
@@ -160,6 +173,19 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
       flushTimer.current = null;
     }
     tokenBuffer.current = "";
+    hasFlushedStream.current = false;
+  }
+
+  function scoreLabel() {
+    if (result) return `Score: ${Math.round(result.score * 100)}%`;
+    if (scorePreview !== null) return `Score: ~${Math.round(scorePreview * 100)}%`;
+    return "Score: checking...";
+  }
+
+  function scoreColor() {
+    const visibleScore = result?.score ?? scorePreview;
+    if (visibleScore === null || visibleScore === undefined) return theme.textMuted;
+    return visibleScore >= 0.8 ? theme.success : "#ffd166";
   }
 
   function primaryActionTitle() {
@@ -207,8 +233,8 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
       {result || streamedFeedback || loading ? (
         <View style={[styles.resultCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.scoreRow}>
-            <Text style={[styles.score, { color: result ? (result.score >= 0.8 ? theme.success : "#ffd166") : theme.textMuted }]}>
-              {result ? `Score: ${Math.round(result.score * 100)}%` : "Score: checking..."}
+            <Text style={[styles.score, { color: scoreColor() }]}>
+              {scoreLabel()}
             </Text>
             {loading && !result ? <ActivityIndicator color={theme.primary} /> : null}
           </View>

@@ -95,7 +95,7 @@ app.post("/api/ai-practice/evaluate-stream", async (req, res) => {
 
   try {
     let earlyResult = null;
-    send("score", quickScoreResult(request, userAnswer));
+    send("score-preview", quickScoreResult(request, userAnswer));
     const finalResultPromise = evaluateWithOpenAI(request, userAnswer).then((result) => {
       earlyResult = result;
       send("score", result);
@@ -383,7 +383,7 @@ function quickScoreResult(request, userAnswer) {
   return sanitizeResult(
     {
       isCorrect: hasExpectedWord,
-      score: hasExpectedWord ? 1 : 0.4,
+      score: hasExpectedWord ? 0.6 : 0.35,
       correctedAnswer: request.expectedExample,
       feedback: "",
       grammarNotes: [],

@@ -21,6 +21,7 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
   const { t } = useI18n();
   const tokenBuffer = useRef("");
   const flushTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasFlushedStream = useRef(false);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [cards, setCards] = useState<PracticeCardView[]>([]);
   const [index, setIndex] = useState(0);
@@ -31,6 +32,7 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
   const [explaining, setExplaining] = useState(false);
   const [loading, setLoading] = useState(false);
   const [scoreVisible, setScoreVisible] = useState(false);
+  const [scorePreview, setScorePreview] = useState<number | null>(null);
   const card = cards[index];
 
   useEffect(() => {
@@ -65,6 +67,7 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
     setStreamedFeedback("");
     setSourceExplanation("");
     setScoreVisible(true);
+    setScorePreview(null);
     let gotStream = false;
     const nextResult = await evaluateWritingAnswerStream(
       card,
@@ -77,6 +80,11 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
       (partialResult) => {
         setScoreVisible(true);
         setResult(partialResult);
+        setScorePreview(null);
+      },
+      (preview) => {
+        setScoreVisible(true);
+        setScorePreview(preview);
       }
     );
     flushStreamBuffer();
@@ -93,6 +101,7 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
     setStreamedFeedback("");
     setSourceExplanation("");
     setScoreVisible(false);
+    setScorePreview(null);
     setAnswer("");
     setIndex((current) => (current + 1 >= cards.length ? 0 : current + 1));
   }
@@ -103,6 +112,7 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
     setStreamedFeedback("");
     setSourceExplanation("");
     setScoreVisible(false);
+    setScorePreview(null);
     setAnswer("");
   }
 
@@ -115,8 +125,13 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
 
   function enqueueStreamToken(token: string) {
     tokenBuffer.current += token;
+    if (!hasFlushedStream.current) {
+      hasFlushedStream.current = true;
+      flushStreamBuffer();
+      return;
+    }
     if (!flushTimer.current) {
-      flushTimer.current = setTimeout(flushStreamBuffer, 48);
+      flushTimer.current = setTimeout(flushStreamBuffer, 20);
     }
   }
 
@@ -137,6 +152,19 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
       flushTimer.current = null;
     }
     tokenBuffer.current = "";
+    hasFlushedStream.current = false;
+  }
+
+  function scoreLabel() {
+    if (result) return `Score: ${Math.round(result.score * 100)}%`;
+    if (scorePreview !== null) return `Score: ~${Math.round(scorePreview * 100)}%`;
+    return "Score: ...";
+  }
+
+  function scoreColor() {
+    const visibleScore = result?.score ?? scorePreview;
+    if (visibleScore === null || visibleScore === undefined) return theme.textMuted;
+    return visibleScore >= 0.8 ? theme.success : "#ffd166";
   }
 
   if (!settings) {
@@ -210,8 +238,8 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
       {scoreVisible || result || streamedFeedback || loading ? (
         <View style={[styles.resultCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.scoreRow}>
-            <Text style={[styles.score, { color: result ? (result.score >= 0.8 ? theme.success : "#ffd166") : theme.textMuted }]}>
-              {result ? `Score: ${Math.round(result.score * 100)}%` : "Score: ..."}
+            <Text style={[styles.score, { color: scoreColor() }]}>
+              {scoreLabel()}
             </Text>
             {loading && !result ? <ActivityIndicator color={theme.primary} /> : null}
           </View>

@@ -21,9 +21,10 @@ export async function evaluateWritingAnswerStream(
   userAnswer: string,
   targetLanguage: LanguageCode,
   onToken: (token: string) => void,
-  onPartialResult?: (result: AiPracticeResult) => void
+  onPartialResult?: (result: AiPracticeResult) => void,
+  onScorePreview?: (score: number) => void
 ): Promise<AiPracticeResult> {
-  return evaluateStream(buildRequest(card, "writing", userAnswer, targetLanguage), onToken, onPartialResult);
+  return evaluateStream(buildRequest(card, "writing", userAnswer, targetLanguage), onToken, onPartialResult, onScorePreview);
 }
 
 export async function evaluateSpeakingAnswer(
@@ -39,9 +40,10 @@ export async function evaluateSpeakingAnswerStream(
   transcript: string,
   targetLanguage: LanguageCode,
   onToken: (token: string) => void,
-  onPartialResult?: (result: AiPracticeResult) => void
+  onPartialResult?: (result: AiPracticeResult) => void,
+  onScorePreview?: (score: number) => void
 ): Promise<AiPracticeResult> {
-  return evaluateStream(buildRequest(card, "speaking", transcript, targetLanguage, transcript), onToken, onPartialResult);
+  return evaluateStream(buildRequest(card, "speaking", transcript, targetLanguage, transcript), onToken, onPartialResult, onScorePreview);
 }
 
 export async function explainAiFeedbackInSourceLanguage(
@@ -118,7 +120,8 @@ async function evaluate(request: AiPracticeRequest): Promise<AiPracticeResult> {
 async function evaluateStream(
   request: AiPracticeRequest,
   onToken: (token: string) => void,
-  onPartialResult?: (result: AiPracticeResult) => void
+  onPartialResult?: (result: AiPracticeResult) => void,
+  onScorePreview?: (score: number) => void
 ): Promise<AiPracticeResult> {
   if (!request.userAnswer.trim()) {
     return {
@@ -139,7 +142,7 @@ async function evaluateStream(
       throw new Error("AI backend URL is not configured.");
     }
 
-    return await postSse(apiUrl, request, onToken, onPartialResult);
+    return await postSse(apiUrl, request, onToken, onPartialResult, onScorePreview);
   } catch (error) {
     return localFallback(request, error instanceof Error ? error.message : "AI backend request failed.");
   }
@@ -149,7 +152,8 @@ function postSse(
   apiUrl: string,
   request: AiPracticeRequest,
   onToken: (token: string) => void,
-  onPartialResult?: (result: AiPracticeResult) => void
+  onPartialResult?: (result: AiPracticeResult) => void,
+  onScorePreview?: (score: number) => void
 ): Promise<AiPracticeResult> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -172,6 +176,12 @@ function postSse(
           const nextResult = sanitizeResult(event.data as Partial<AiPracticeResult>, request);
           finalResult = nextResult;
           onPartialResult?.(nextResult);
+        }
+        if (event.type === "score-preview") {
+          const score = typeof event.data.score === "number" ? Math.max(0, Math.min(1, event.data.score)) : null;
+          if (score !== null) {
+            onScorePreview?.(score);
+          }
         }
       }
     };
@@ -204,6 +214,12 @@ function postSse(
           const nextResult = sanitizeResult(event.data as Partial<AiPracticeResult>, request);
           finalResult = nextResult;
           onPartialResult?.(nextResult);
+        }
+        if (event.type === "score-preview") {
+          const score = typeof event.data.score === "number" ? Math.max(0, Math.min(1, event.data.score)) : null;
+          if (score !== null) {
+            onScorePreview?.(score);
+          }
         }
       }
       if (xhr.status >= 400) {
