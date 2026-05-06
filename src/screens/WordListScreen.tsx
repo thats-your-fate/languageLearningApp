@@ -81,6 +81,12 @@ export function WordListScreen({ navigation, route }: Props) {
               <View style={styles.wordText}>
                 <Text style={[styles.source, { color: theme.textMuted }]}>{card.sourceText}</Text>
                 <Text style={[styles.target, { color: theme.text }]}>{card.targetText}</Text>
+                <View style={styles.metaRow}>
+                  <Text style={[styles.partOfSpeech, { color: theme.textMuted, borderColor: theme.border }]}>
+                    {card.partOfSpeech}
+                  </Text>
+                  <Text style={[styles.levelMeta, { color: theme.textMuted }]}>{card.level}</Text>
+                </View>
               </View>
               <Pressable
                 accessibilityRole="button"
@@ -111,6 +117,26 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.8
+  },
+  levelMeta: {
+    fontSize: 12,
+    fontWeight: "900"
+  },
+  metaRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 9
+  },
+  partOfSpeech: {
+    borderRadius: 999,
+    borderWidth: 1,
+    fontSize: 12,
+    fontWeight: "900",
+    overflow: "hidden",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    textTransform: "lowercase"
   },
   sound: {
     alignItems: "center",

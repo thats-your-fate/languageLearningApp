@@ -1,6 +1,8 @@
+import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { StyleSheet, Text, useColorScheme, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AppButton } from "../components/AppButton";
+import { LearnerBadge } from "../components/LearnerBadge";
 import { LevelBadge } from "../components/LevelBadge";
 import { Screen } from "../components/Screen";
 import { useI18n } from "../i18n";
@@ -26,7 +28,7 @@ export function CardDetailScreen({ navigation, route }: Props) {
 
   if (!rawCard || !settings) {
     return (
-      <Screen>
+      <Screen title={t("card.details")} backLabel={t("common.wordList")} activeTab="Learn">
         <Text style={{ color: theme.text }}>{t("card.notFound")}</Text>
       </Screen>
     );
@@ -35,14 +37,30 @@ export function CardDetailScreen({ navigation, route }: Props) {
   const card: PracticeCardView = toPracticeCardView(rawCard, settings.sourceLanguage, settings.targetLanguage);
 
   return (
-    <Screen>
+    <Screen
+      title={t("card.details")}
+      backLabel={t("common.wordList")}
+      activeTab="Learn"
+      headerRight={<LearnerBadge settings={settings} onPress={() => navigation.navigate("Onboarding", { settings })} />}
+    >
       <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={styles.topRow}>
           <LevelBadge level={card.level} />
-          <Text style={[styles.meta, { color: theme.textMuted }]}>{card.partOfSpeech}</Text>
+          <Text style={[styles.partOfSpeech, { color: theme.textMuted, borderColor: theme.border }]}>{card.partOfSpeech}</Text>
         </View>
+        <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>{t("card.learningWord")}</Text>
         <Text style={[styles.target, { color: theme.text }]}>{card.targetText}</Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => speak(card.targetText, settings.targetLanguage)}
+          style={[styles.soundInline, { backgroundColor: theme.soundButton }]}
+        >
+          <Ionicons name="volume-high" size={20} color={theme.text} />
+          <Text style={[styles.soundText, { color: theme.text }]}>{t("card.playPronunciation")}</Text>
+        </Pressable>
+        <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>{t("card.nativeMeaning")}</Text>
         <Text style={[styles.source, { color: theme.textMuted }]}>{card.sourceText}</Text>
+        <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>{t("card.category")}</Text>
         <Text style={[styles.meta, { color: theme.textMuted }]}>
           {card.category}
           {rawCard.subcategory ? ` · ${rawCard.subcategory}` : ""}
@@ -50,13 +68,13 @@ export function CardDetailScreen({ navigation, route }: Props) {
       </View>
 
       <InfoBlock title={t("card.meaning")} body={card.meaningLock} />
+      <Text style={[styles.groupTitle, { color: theme.text }]}>{t("card.examples")}</Text>
       <InfoBlock title={t("card.sourceExample")} body={card.sourceExample} />
       <InfoBlock title={t("card.targetExample")} body={card.targetExample} />
 
       <AppButton title={t("card.practiceWriting")} onPress={() => navigation.navigate("AiWritingPractice", { cardId: card.id })} />
       <AppButton title={t("card.practiceSpeaking")} variant="secondary" onPress={() => navigation.navigate("AiSpeakingPractice", { cardId: card.id })} />
       <AppButton title={t("card.regularPractice")} variant="secondary" onPress={() => navigation.navigate("Practice", {})} />
-      <AppButton title={t("card.playPronunciation")} variant="secondary" onPress={() => speak(card.targetText, settings.targetLanguage)} />
     </Screen>
   );
 }
@@ -96,6 +114,42 @@ const styles = StyleSheet.create({
   meta: {
     fontSize: 14,
     fontWeight: "700"
+  },
+  groupTitle: {
+    fontSize: 18,
+    fontWeight: "900",
+    marginTop: 4
+  },
+  partOfSpeech: {
+    borderRadius: 999,
+    borderWidth: 1,
+    fontSize: 12,
+    fontWeight: "900",
+    overflow: "hidden",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    textTransform: "lowercase"
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 1,
+    marginTop: 4,
+    textTransform: "uppercase"
+  },
+  soundInline: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    borderRadius: 999,
+    flexDirection: "row",
+    gap: 7,
+    marginBottom: 4,
+    minHeight: 38,
+    paddingHorizontal: 12
+  },
+  soundText: {
+    fontSize: 13,
+    fontWeight: "900"
   },
   source: {
     fontSize: 20,

@@ -191,7 +191,10 @@ export function PracticeScreen({ navigation, route }: Props) {
       </Text>
 
       <View style={[styles.card, { backgroundColor: theme.surfaceStrong }]}>
-        <Text style={[styles.label, { color: theme.textMuted }]}>{revealed ? t("practice.answer") : t("practice.translate")}</Text>
+        <View style={styles.cardMetaRow}>
+          <Text style={[styles.label, { color: theme.textMuted }]}>{revealed ? t("practice.answer") : t("practice.translate")}</Text>
+          <Text style={[styles.partOfSpeech, { color: theme.textMuted, borderColor: theme.border }]}>{card.partOfSpeech}</Text>
+        </View>
         <View style={styles.wordRow}>
           <Text style={[styles.answer, { color: theme.text }]}>{revealed ? card.targetText : card.sourceText}</Text>
           <SoundButton onPress={() => speak(revealed ? card.targetText : card.sourceText, revealed ? settings.targetLanguage : settings.sourceLanguage)} />
@@ -321,6 +324,11 @@ const styles = StyleSheet.create({
     minHeight: 210,
     padding: 16
   },
+  cardMetaRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between"
+  },
   example: {
     flex: 1,
     fontSize: 16,
@@ -358,6 +366,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "900",
     letterSpacing: 2
+  },
+  partOfSpeech: {
+    borderRadius: 999,
+    borderWidth: 1,
+    fontSize: 12,
+    fontWeight: "900",
+    overflow: "hidden",
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    textTransform: "lowercase"
   },
   practiceShortcuts: {
     flexDirection: "row",

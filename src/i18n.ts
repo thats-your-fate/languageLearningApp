@@ -120,7 +120,12 @@ type TranslationKey =
   | "aiSpeaking.transcriptPlaceholder"
   | "aiSpeaking.submitTranscript"
   | "aiSpeaking.playCorrect"
+  | "card.details"
   | "card.notFound"
+  | "card.learningWord"
+  | "card.nativeMeaning"
+  | "card.category"
+  | "card.examples"
   | "card.meaning"
   | "card.sourceExample"
   | "card.targetExample"
@@ -260,7 +265,12 @@ const dictionaries: Record<"en" | "de" | "pt-BR" | "it" | "fr", Dictionary> = {
     "aiSpeaking.transcriptPlaceholder": "Transcript",
     "aiSpeaking.submitTranscript": "Submit transcript",
     "aiSpeaking.playCorrect": "Play correct sentence",
+    "card.details": "Word details",
     "card.notFound": "Card not found.",
+    "card.learningWord": "Learning word",
+    "card.nativeMeaning": "Meaning in your language",
+    "card.category": "Category",
+    "card.examples": "Examples",
     "card.meaning": "Meaning",
     "card.sourceExample": "Source example",
     "card.targetExample": "Target example",
@@ -389,7 +399,12 @@ const dictionaries: Record<"en" | "de" | "pt-BR" | "it" | "fr", Dictionary> = {
     "aiSpeaking.transcriptPlaceholder": "Getipptes Transkript",
     "aiSpeaking.submitTranscript": "Transkript senden",
     "aiSpeaking.playCorrect": "Richtigen Satz abspielen",
+    "card.details": "Wortdetails",
     "card.notFound": "Karte nicht gefunden.",
+    "card.learningWord": "Lernwort",
+    "card.nativeMeaning": "Bedeutung in deiner Sprache",
+    "card.category": "Kategorie",
+    "card.examples": "Beispiele",
     "card.meaning": "Bedeutung",
     "card.sourceExample": "Ausgangsbeispiel",
     "card.targetExample": "Zielbeispiel",
@@ -522,7 +537,12 @@ dictionaries["pt-BR"] = {
   "discovery.pauseAutoplay": "Pausar reprodução automática",
   "discovery.resumeAutoplay": "Retomar reprodução automática",
   "discovery.nextCard": "Próximo cartão",
+  "card.details": "Detalhes da palavra",
   "card.notFound": "Cartão não encontrado.",
+  "card.learningWord": "Palavra de estudo",
+  "card.nativeMeaning": "Significado no seu idioma",
+  "card.category": "Categoria",
+  "card.examples": "Exemplos",
   "card.meaning": "Significado",
   "card.sourceExample": "Exemplo no idioma original",
   "card.targetExample": "Exemplo no idioma de estudo",
@@ -651,7 +671,12 @@ dictionaries.it = {
   "discovery.pauseAutoplay": "Pausa autoplay",
   "discovery.resumeAutoplay": "Riprendi autoplay",
   "discovery.nextCard": "Carta successiva",
+  "card.details": "Dettagli parola",
   "card.notFound": "Carta non trovata.",
+  "card.learningWord": "Parola da imparare",
+  "card.nativeMeaning": "Significato nella tua lingua",
+  "card.category": "Categoria",
+  "card.examples": "Esempi",
   "card.meaning": "Significato",
   "card.sourceExample": "Esempio nella lingua originale",
   "card.targetExample": "Esempio nella lingua di studio",
@@ -780,7 +805,12 @@ dictionaries.fr = {
   "discovery.pauseAutoplay": "Mettre l’autoplay en pause",
   "discovery.resumeAutoplay": "Reprendre l’autoplay",
   "discovery.nextCard": "Carte suivante",
+  "card.details": "Détails du mot",
   "card.notFound": "Carte introuvable.",
+  "card.learningWord": "Mot à apprendre",
+  "card.nativeMeaning": "Sens dans votre langue",
+  "card.category": "Catégorie",
+  "card.examples": "Exemples",
   "card.meaning": "Sens",
   "card.sourceExample": "Exemple dans la langue d’origine",
   "card.targetExample": "Exemple dans la langue apprise",
