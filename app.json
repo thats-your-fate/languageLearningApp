@@ -7,12 +7,12 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#f4f7fb",
+      "image": "./assets/splash/splash-default.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#ff8a22",
       "dark": {
-        "image": "./assets/icon.png",
-        "backgroundColor": "#071120"
+        "image": "./assets/splash/splash-default.png",
+        "backgroundColor": "#ff8a22"
       }
     },
     "assetBundlePatterns": [
@@ -45,6 +45,7 @@
     },
     "plugins": [
       "expo-font",
+      "expo-splash-screen",
       [
         "expo-build-properties",
         {
