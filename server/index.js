@@ -95,6 +95,7 @@ app.post("/api/ai-practice/evaluate-stream", async (req, res) => {
 
   try {
     let earlyResult = null;
+    send("score", quickScoreResult(request, userAnswer));
     const finalResultPromise = evaluateWithOpenAI(request, userAnswer).then((result) => {
       earlyResult = result;
       send("score", result);
@@ -368,6 +369,36 @@ function fallbackResult(request) {
     acceptedAlternatives: [request.expectedText],
     source: "fallback"
   };
+}
+
+function quickScoreResult(request, userAnswer) {
+  const answerWords = normalizeWords(userAnswer);
+  const expectedWords = normalizeWords(request.expectedText);
+  const hasExpectedWord =
+    expectedWords.length > 0 &&
+    expectedWords.every((expected) =>
+      answerWords.some((word) => word === expected || word.startsWith(expected) || expected.startsWith(word))
+    );
+
+  return sanitizeResult(
+    {
+      isCorrect: hasExpectedWord,
+      score: hasExpectedWord ? 1 : 0.4,
+      correctedAnswer: request.expectedExample,
+      feedback: "",
+      grammarNotes: [],
+      acceptedAlternatives: [request.expectedText]
+    },
+    request
+  );
+}
+
+function normalizeWords(value) {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .match(/[a-z0-9]+/g) || [];
 }
 
 function fallbackCopy(language, word) {

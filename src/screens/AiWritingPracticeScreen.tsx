@@ -30,23 +30,24 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
   const [sourceExplanation, setSourceExplanation] = useState("");
   const [explaining, setExplaining] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [scoreVisible, setScoreVisible] = useState(false);
   const card = cards[index];
 
   useEffect(() => {
     getSettings().then(async (saved) => {
       const progress = await getAllProgress();
-      const allCards = shuffleCards(
-        getPracticeCards(saved.sourceLanguage, saved.targetLanguage).filter((item) => {
-          const cardProgress = progress[item.id];
-          return cardProgress?.status === "known" || cardProgress?.grade === "good" || cardProgress?.grade === "easy";
-        })
-      );
+      const eligibleCards = getPracticeCards(saved.sourceLanguage, saved.targetLanguage).filter((item) => {
+        const cardProgress = progress[item.id];
+        return cardProgress?.status === "known" || cardProgress?.grade === "good" || cardProgress?.grade === "easy";
+      });
       const raw = route.params?.cardId ? getCardById(route.params.cardId) : null;
-      const initial =
+      const pinnedCard =
         raw && (progress[raw.id]?.status === "known" || progress[raw.id]?.grade === "good" || progress[raw.id]?.grade === "easy")
           ? toPracticeCardView(raw, saved.sourceLanguage, saved.targetLanguage)
-          : allCards[0];
-      setCards(initial ? [initial, ...allCards.filter((item) => item.id !== initial.id)] : allCards);
+          : null;
+      const shuffledCards = shuffleCards(eligibleCards.filter((item) => item.id !== pinnedCard?.id));
+      setCards(pinnedCard ? [pinnedCard, ...shuffledCards] : shuffledCards);
+      setIndex(0);
       setSettings(saved);
     });
 
@@ -63,6 +64,7 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
     setResult(null);
     setStreamedFeedback("");
     setSourceExplanation("");
+    setScoreVisible(true);
     let gotStream = false;
     const nextResult = await evaluateWritingAnswerStream(
       card,
@@ -73,6 +75,7 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
         enqueueStreamToken(token);
       },
       (partialResult) => {
+        setScoreVisible(true);
         setResult(partialResult);
       }
     );
@@ -89,6 +92,7 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
     setResult(null);
     setStreamedFeedback("");
     setSourceExplanation("");
+    setScoreVisible(false);
     setAnswer("");
     setIndex((current) => (current + 1 >= cards.length ? 0 : current + 1));
   }
@@ -98,6 +102,7 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
     setResult(null);
     setStreamedFeedback("");
     setSourceExplanation("");
+    setScoreVisible(false);
     setAnswer("");
   }
 
@@ -202,17 +207,19 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
         </View>
       ) : null}
 
-      {result || streamedFeedback || loading ? (
+      {scoreVisible || result || streamedFeedback || loading ? (
         <View style={[styles.resultCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.scoreRow}>
             <Text style={[styles.score, { color: result ? (result.score >= 0.8 ? theme.success : "#ffd166") : theme.textMuted }]}>
-              {result ? `Score: ${Math.round(result.score * 100)}%` : "Score: checking..."}
+              {result ? `Score: ${Math.round(result.score * 100)}%` : "Score: ..."}
             </Text>
             {loading && !result ? <ActivityIndicator color={theme.primary} /> : null}
           </View>
-          <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
-            {t(result?.source === "fallback" ? "aiWriting.offlineFeedback" : "aiWriting.feedback")}
-          </Text>
+          {streamedFeedback || result ? (
+            <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>
+              {t(result?.source === "fallback" ? "aiWriting.offlineFeedback" : "aiWriting.feedback")}
+            </Text>
+          ) : null}
           {result?.source === "fallback" && result.offlineReason ? (
             <Text style={[styles.offlineReason, { color: theme.textMuted }]}>
               {result.offlineReason}
