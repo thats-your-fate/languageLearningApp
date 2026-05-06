@@ -24,6 +24,9 @@
       "bundleIdentifier": "com.anonymous.languageflashcards",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Lighthouse uses the microphone to transcribe your speaking practice.",
+        "UIBackgroundModes": [
+          "audio"
+        ],
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
         }

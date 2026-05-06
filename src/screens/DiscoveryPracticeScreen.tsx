@@ -9,7 +9,7 @@ import { useI18n } from "../i18n";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import { getAllProgress } from "../services/progressService";
 import { getSettings } from "../services/settingsService";
-import { speak, stop } from "../services/ttsService";
+import { speakUntilDone, stop } from "../services/ttsService";
 import { getPracticeCards, shuffleCards } from "../services/vocabularyService";
 import { useAppTheme } from "../theme";
 import { CardProgress } from "../types/progress";
@@ -20,8 +20,9 @@ type Props = NativeStackScreenProps<RootStackParamList, "DiscoveryPractice">;
 export function DiscoveryPracticeScreen({ navigation }: Props) {
   const theme = useAppTheme();
   const { t } = useI18n();
-  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const timers = useRef<{ timer: ReturnType<typeof setTimeout>; resolve: () => void }[]>([]);
   const playbackRun = useRef(0);
+  const pausedRef = useRef(false);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [cards, setCards] = useState<PracticeCardView[]>([]);
   const [index, setIndex] = useState(0);
@@ -53,27 +54,28 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
   }, []);
 
   useEffect(() => {
-    if (settings && card && !paused) {
+    if (settings && card && !pausedRef.current) {
       playSequence();
     }
     // The card index intentionally drives autoplay when entering and moving next.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings, index, card?.id, paused]);
+  }, [settings, index, card?.id]);
 
   function clearTimers() {
     playbackRun.current += 1;
-    timers.current.forEach(clearTimeout);
+    timers.current.forEach(({ timer, resolve }) => {
+      clearTimeout(timer);
+      resolve();
+    });
     timers.current = [];
-  }
-
-  function delayFor(text: string): number {
-    return Math.max(1300, Math.min(3400, text.length * 55));
   }
 
   async function playSequence() {
     if (!settings || !card) return;
     clearTimers();
     const runId = playbackRun.current;
+    pausedRef.current = false;
+    setPaused(false);
     setPlaying(true);
     const sequence = [
       { text: card.targetText, language: settings.targetLanguage },
@@ -81,24 +83,27 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
       { text: card.targetExample, language: settings.targetLanguage },
       { text: card.sourceExample, language: settings.sourceLanguage }
     ];
-    let offset = 0;
-    sequence.forEach((item, itemIndex) => {
-      timers.current.push(
-        setTimeout(() => {
-          if (runId !== playbackRun.current || paused) return;
-          speak(item.text, item.language);
-          if (itemIndex === sequence.length - 1) {
-            timers.current.push(
-              setTimeout(() => {
-                if (runId !== playbackRun.current || paused) return;
-                setPlaying(false);
-                setIndex((current) => (current + 1 >= cards.length ? 0 : current + 1));
-              }, delayFor(item.text) + 1500)
-            );
-          }
-        }, offset)
-      );
-      offset += delayFor(item.text) + 1500;
+
+    for (const item of sequence) {
+      if (runId !== playbackRun.current || pausedRef.current) return;
+      await speakUntilDone(item.text, item.language);
+      if (runId !== playbackRun.current || pausedRef.current) return;
+      await wait(1500, runId);
+    }
+
+    if (runId !== playbackRun.current || pausedRef.current) return;
+    setPlaying(false);
+    setIndex((current) => (current + 1 >= cards.length ? 0 : current + 1));
+  }
+
+  function wait(ms: number, runId: number): Promise<void> {
+    return new Promise((resolve) => {
+      const timer = setTimeout(resolve, ms);
+      timers.current.push({ timer, resolve });
+      if (runId !== playbackRun.current || pausedRef.current) {
+        clearTimeout(timer);
+        resolve();
+      }
     });
   }
 
@@ -109,15 +114,19 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
     setIndex((current) => (current + 1 >= cards.length ? 0 : current + 1));
   }
 
-  function togglePause() {
-    if (paused) {
-      setPaused(false);
+  async function handlePlaybackPress() {
+    if (playing) {
+      pausedRef.current = true;
+      setPaused(true);
+      setPlaying(false);
+      clearTimers();
+      await stop();
       return;
     }
-    clearTimers();
-    stop();
-    setPlaying(false);
-    setPaused(true);
+
+    pausedRef.current = false;
+    setPaused(false);
+    playSequence();
   }
 
   function isKnownProgress(progress?: CardProgress) {
@@ -153,14 +162,14 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
       </View>
       <Pressable
         accessibilityRole="button"
-        onPress={playSequence}
-        disabled={playing}
+        onPress={handlePlaybackPress}
         style={[styles.play, { backgroundColor: playing ? theme.surfaceMuted : "#eef1f6" }]}
       >
-        <Ionicons name={playing ? "volume-high" : "play"} size={22} color={theme.primaryText} />
-        <Text style={[styles.playText, { color: theme.primaryText }]}>{playing ? t("discovery.playing") : t("discovery.playSequence")}</Text>
+        <Ionicons name={playing ? "pause" : "play"} size={22} color={theme.primaryText} />
+        <Text style={[styles.playText, { color: theme.primaryText }]}>
+          {playing ? t("discovery.pauseAutoplay") : paused ? t("discovery.resumeAutoplay") : t("discovery.playSequence")}
+        </Text>
       </Pressable>
-      <AppButton title={paused ? t("discovery.resumeAutoplay") : t("discovery.pauseAutoplay")} variant="secondary" onPress={togglePause} />
       <AppButton title={t("discovery.nextCard")} variant="secondary" onPress={next} />
     </Screen>
   );
