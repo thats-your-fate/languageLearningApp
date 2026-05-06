@@ -1,7 +1,17 @@
 /* eslint-disable @next/next/no-img-element */
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AstraxFaq } from "@/components/marketing/astrax-faq";
+
+export const metadata: Metadata = {
+  title: "Lighthouse Language | Vocabulary, Sentence Practice, and AI Coaching",
+  description:
+    "Learn languages through active vocabulary recall, sentence exercises, flashcards, writing practice, speaking practice, TTS, progress tracking, and optional AI feedback.",
+  alternates: {
+    canonical: "/",
+  },
+};
 
 const features = [
   {

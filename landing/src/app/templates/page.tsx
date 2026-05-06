@@ -1,4 +1,14 @@
 /* eslint-disable @next/next/no-img-element */
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "App Screens",
+  description:
+    "Preview Lighthouse Language screens for sentence practice, AI writing feedback, practice modes, word lists, stats, settings, and flashcard review.",
+  alternates: {
+    canonical: "/templates",
+  },
+};
 
 const screens = [
   { src: "/app-screens/screen-1.png", title: "Practice in context", text: "Complete sentences using words you already know, with quick feedback that keeps the session moving." },

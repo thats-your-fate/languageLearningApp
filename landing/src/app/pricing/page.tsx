@@ -1,5 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "App Details",
+  description:
+    "See how Lighthouse Language turns vocabulary into sentence practice with flashcards, known-word drills, progress tracking, themes, and optional AI coaching.",
+  alternates: {
+    canonical: "/pricing",
+  },
+};
 
 const sections = [
   {

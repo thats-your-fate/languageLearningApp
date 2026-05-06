@@ -2,8 +2,11 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | Lighthouse Language",
-  description: "Privacy policy for the Lighthouse Language mobile app.",
+  title: "Privacy Policy",
+  description: "How Lighthouse Language handles local progress, language settings, speech practice, and optional AI feedback data.",
+  alternates: {
+    canonical: "/privacy",
+  },
 };
 
 const sections = [
@@ -64,7 +67,7 @@ const sections = [
 
 export default function PrivacyPage() {
   return (
-    <div className="bg-white">
+    <div className="lighthouse-privacy-page">
       <section
         className="fintech-app-home-section-1 position-relative overflow-hidden pt-250 pb-160 rounded-bottom-5 z-4"
         style={{
@@ -92,18 +95,18 @@ export default function PrivacyPage() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-4xl px-5 py-16 sm:px-6 lg:px-8">
-        <div className="rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-sm md:p-10">
-          <p className="text-base leading-7 text-slate-700">
+      <section className="lighthouse-privacy-content">
+        <div className="lighthouse-privacy-card">
+          <p className="lighthouse-privacy-intro">
             This Privacy Policy explains how Lighthouse Language handles information when you use the mobile app and related AI practice services.
             This page is written as an App Store-ready starting point. Replace the contact address and any deployment-specific details before publishing.
           </p>
 
-          <div className="mt-10 grid gap-8">
+          <div className="lighthouse-privacy-sections">
             {sections.map((section) => (
-              <section key={section.title}>
-                <h2 className="text-2xl font-black text-slate-950">{section.title}</h2>
-                <ul className="mt-4 list-disc space-y-3 pl-6 text-base leading-7 text-slate-700">
+              <section key={section.title} className="lighthouse-privacy-section">
+                <h2>{section.title}</h2>
+                <ul>
                   {section.body.map((item) => (
                     <li key={item}>{item}</li>
                   ))}

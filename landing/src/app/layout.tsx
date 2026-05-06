@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Manrope, Space_Grotesk } from "next/font/google";
 import Link from "next/link";
+import { LandingHeader } from "@/components/marketing/landing-header";
 
 import "./globals.css";
 
@@ -21,8 +22,55 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Lighthouse Language",
-  description: "A focused mobile app that turns vocabulary into sentence, writing, and speaking practice with optional AI coaching.",
+  metadataBase: new URL("https://lighthouse-language-app.cc"),
+  title: {
+    default: "Lighthouse Language | Learn Vocabulary Through Sentences",
+    template: "%s | Lighthouse Language",
+  },
+  description:
+    "Lighthouse is a mobile language-learning app for practicing vocabulary, sentence recall, writing, speaking, pronunciation, and spaced repetition with optional AI coaching.",
+  keywords: [
+    "language learning app",
+    "vocabulary flashcards",
+    "sentence practice",
+    "AI language tutor",
+    "Portuguese learning app",
+    "Italian learning app",
+    "German learning app",
+    "French learning app",
+    "Spanish learning app",
+    "spaced repetition",
+  ],
+  applicationName: "Lighthouse Language",
+  authors: [{ name: "Lighthouse Language" }],
+  creator: "Lighthouse Language",
+  publisher: "Lighthouse Language",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: "Lighthouse Language",
+    title: "Lighthouse Language | Learn Vocabulary Through Sentences",
+    description:
+      "Build active vocabulary with flashcards, sentence drills, writing practice, speaking practice, progress tracking, and optional AI feedback.",
+    images: [
+      {
+        url: "/app-screens/screen-2.png",
+        width: 945,
+        height: 2048,
+        alt: "Lighthouse Language AI writing practice screen",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lighthouse Language",
+    description:
+      "Practice words until they become sentences with flashcards, speech, writing, and optional AI coaching.",
+    images: ["/app-screens/screen-2.png"],
+  },
 };
 
 function Logo({ dark = false }: { dark?: boolean }) {
@@ -35,57 +83,6 @@ function Logo({ dark = false }: { dark?: boolean }) {
       </svg>
       <h5 className={`mb-0 ${dark ? "text-dark" : "text-white"}`}>Lighthouse</h5>
     </Link>
-  );
-}
-
-function Header() {
-  return (
-    <header>
-      <div className="position-absolute top-0 start-0 w-100">
-        <nav className="navbar navbar-expand-lg navbar-transparent z-5 p-0 shadow-none">
-          <div className="container">
-            <Logo />
-            <div className="d-none d-lg-flex align-self-stretch z-35 position-relative">
-              <ul className="navbar-nav mx-auto gap-4 align-items-lg-center">
-                <li className="nav-item">
-                  <Link className="nav-link text-uppercase" href="/">
-                    Home
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link text-uppercase" href="/templates">
-                    Screens
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link text-uppercase" href="/pricing">
-                    App
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link className="nav-link text-uppercase" href="/privacy">
-                    Privacy
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div className="d-flex align-items-center gap-4 align-self-stretch">
-              <Link href="/privacy" className="btn btn-dashed d-none d-md-flex">
-                privacy policy
-                <svg xmlns="http://www.w3.org/2000/svg" width={16} height={16} viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path d="M15.8167 7.55759 12.5504 4.307C12.3057 4.06353 11.91 4.06444 11.6665 4.30912C11.423 4.55378 11.4239 4.9495 11.6686 5.193L13.8612 7.375H.625C.279813 7.375 0 7.65481 0 8C0 8.34519.279813 8.625.625 8.625H13.8612L11.6686 10.807C11.4239 11.0505 11.423 11.4462 11.6665 11.6909C11.91 11.9356 12.3058 11.9364 12.5504 11.693L15.8162 8.443C16.0615 8.19809 16.0607 7.80109 15.8167 7.55759Z" fill="#B1E346" />
-                </svg>
-              </Link>
-              <Link className="burger-icon burger-icon-white border rounded-3 top-0 end-0 d-lg-none" href="/privacy" aria-label="Open privacy policy">
-                <span className="burger-icon-top" />
-                <span className="burger-icon-mid" />
-                <span className="burger-icon-bottom" />
-              </Link>
-            </div>
-          </div>
-        </nav>
-      </div>
-    </header>
   );
 }
 
@@ -153,7 +150,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <link rel="stylesheet" href="/assets/fonts/fontawesome/regular.min.css" />
         <link rel="stylesheet" href="/assets/css/main.css" />
         <link rel="stylesheet" href="/assets/css/style.css" />
-        <Header />
+        <LandingHeader />
         <main>{children}</main>
         <Footer />
       </body>
