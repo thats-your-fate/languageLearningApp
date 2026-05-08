@@ -57,7 +57,7 @@ export default function MarketingPage() {
   return (
     <>
       <section
-        className="fintech-app-home-section-1 position-relative overflow-hidden pt-120 pb-120 rounded-bottom-5 z-4"
+        className="fintech-app-home-section-1 lighthouse-home-hero position-relative overflow-hidden pt-120 pb-120 z-4"
         style={{
           backgroundColor: "var(--tc-theme-primary)",
           backgroundImage: "url('/assets/imgs/pages/fintech-app/page-home/home-section-1/img-bg.png')",
@@ -102,17 +102,12 @@ export default function MarketingPage() {
             </div>
           </div>
         </div>
-        <div className="banner position-absolute bottom-0 start-40 z-1 ps-10 d-none d-lg-block">
+        <div className="lighthouse-hero-screens d-none d-lg-block">
           <div
-            className="d-grid"
-            style={{
-              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-              gap: 22,
-              padding: 50,
-            }}
+            className="lighthouse-hero-screen-grid"
           >
-            <img src="/app-screens/screen-1.png" alt="Sentence practice preview" style={{ maxHeight: 650, borderRadius: 34 }} />
-            <img src="/app-screens/screen-2.png" alt="AI writing feedback preview" style={{ maxHeight: 650, borderRadius: 34 }} />
+            <img className="lighthouse-hero-screen" src="/app-screens/screen-1.png" alt="Sentence practice preview" />
+            <img className="lighthouse-hero-screen" src="/app-screens/screen-2.png" alt="AI writing feedback preview" />
           </div>
         </div>
       </section>

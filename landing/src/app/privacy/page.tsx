@@ -69,7 +69,7 @@ export default function PrivacyPage() {
   return (
     <div className="lighthouse-privacy-page">
       <section
-        className="fintech-app-home-section-1 position-relative overflow-hidden pt-250 pb-160 rounded-bottom-5 z-4"
+        className="fintech-app-home-section-1 position-relative overflow-hidden pt-250 pb-160 z-4"
         style={{
           backgroundColor: "var(--tc-theme-primary)",
           backgroundImage: "url('/assets/imgs/pages/fintech-app/page-home/home-section-1/img-bg.png')",

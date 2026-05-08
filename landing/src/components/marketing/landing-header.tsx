@@ -65,7 +65,7 @@ export function LandingHeader() {
           </div>
         </nav>
         {open ? (
-          <div className="container d-lg-none">
+          <div className="container d-lg-none lighthouse-mobile-menu-container">
             <div className="lighthouse-mobile-menu">
               {navItems.map((item) => (
                 <Link key={item.href} href={item.href} onClick={() => setOpen(false)}>

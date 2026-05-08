@@ -193,7 +193,7 @@ export function PracticeScreen({ navigation, route }: Props) {
       <View style={[styles.card, { backgroundColor: theme.surfaceStrong }]}>
         <View style={styles.cardMetaRow}>
           <Text style={[styles.label, { color: theme.textMuted }]}>{revealed ? t("practice.answer") : t("practice.translate")}</Text>
-          <Text style={[styles.partOfSpeech, { color: theme.textMuted, borderColor: theme.border }]}>{card.partOfSpeech}</Text>
+          <Text style={[styles.partOfSpeech, { color: theme.text, borderColor: theme.border }]}>{card.partOfSpeech}</Text>
         </View>
         <View style={styles.wordRow}>
           <Text style={[styles.answer, { color: theme.text }]}>{revealed ? card.targetText : card.sourceText}</Text>
@@ -368,13 +368,13 @@ const styles = StyleSheet.create({
     letterSpacing: 2
   },
   partOfSpeech: {
-    borderRadius: 999,
+    borderRadius: 10,
     borderWidth: 1,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: 13,
+    fontWeight: "800",
     overflow: "hidden",
-    paddingHorizontal: 9,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     textTransform: "lowercase"
   },
   practiceShortcuts: {

@@ -22,9 +22,9 @@ const screens = [
 
 export default function ScreensPage() {
   return (
-    <div className="bg-white">
+    <div className="lighthouse-preview-page">
       <section
-        className="fintech-app-home-section-1 position-relative overflow-hidden pt-250 pb-160 rounded-bottom-5 z-4"
+        className="fintech-app-home-section-1 position-relative overflow-hidden pt-250 pb-160 z-4"
         style={{
           backgroundColor: "var(--tc-theme-primary)",
           backgroundImage: "url('/assets/imgs/pages/fintech-app/page-home/home-section-1/img-bg.png')",
@@ -50,26 +50,26 @@ export default function ScreensPage() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl px-5 py-16 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+      <section className="lighthouse-preview-section">
+        <div className="lighthouse-preview-header">
           <div>
-            <p className="text-sm font-black uppercase tracking-wide text-slate-500">Product preview</p>
-            <h2 className="mt-2 text-3xl font-black text-slate-950">Every screen is built for action</h2>
+            <p className="lighthouse-preview-eyebrow">Product preview</p>
+            <h2 className="lighthouse-preview-title">Every screen is built for action</h2>
           </div>
-          <p className="max-w-xl text-sm leading-6 text-slate-600">
+          <p className="lighthouse-preview-copy">
             The app keeps navigation simple, typography readable, and practice controls close to the learner, so daily sessions stay frictionless.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="lighthouse-preview-grid">
           {screens.map((screen) => (
-            <article key={screen.src} className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-950 p-5 shadow-sm">
-              <div className="flex justify-center rounded-[1.25rem] bg-slate-900 p-4">
-                <img src={screen.src} alt={screen.title} className="max-h-[620px] rounded-[2rem]" />
+            <article key={screen.src} className="lighthouse-preview-card">
+              <div className="lighthouse-preview-phone">
+                <img src={screen.src} alt={screen.title} />
               </div>
-              <div className="mt-5">
-                <h3 className="text-2xl font-black leading-tight text-white">{screen.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-300">{screen.text}</p>
+              <div className="lighthouse-preview-card-copy">
+                <h3>{screen.title}</h3>
+                <p>{screen.text}</p>
               </div>
             </article>
           ))}

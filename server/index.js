@@ -1,13 +1,17 @@
 require("dotenv").config({ path: require("path").join(__dirname, ".env") });
 
+const crypto = require("crypto");
 const express = require("express");
+const fs = require("fs/promises");
 const multer = require("multer");
 const OpenAI = require("openai");
+const path = require("path");
 
 const app = express();
 const port = process.env.PORT || 3001;
 const client = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const ttsCacheDir = path.join(__dirname, ".tts-cache");
 
 app.use(express.json({ limit: "1mb" }));
 
@@ -153,6 +157,68 @@ app.post("/api/ai-practice/transcribe", upload.single("audio"), async (req, res)
     console.error(error);
     return res.status(500).json({ error: "Speech transcription failed." });
   }
+});
+
+app.get("/api/ai-practice/tts", async (req, res) => {
+  if (!client) {
+    return res.status(503).json({ error: "OpenAI API key is not configured." });
+  }
+
+  const text = String(req.query.text || "").trim();
+  const language = String(req.query.language || "en").trim();
+  if (!text) {
+    return res.status(400).json({ error: "Missing text." });
+  }
+
+  try {
+    const audio = await getCachedSpeechAudio(text.slice(0, 700), language);
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    res.setHeader("Content-Type", "audio/mpeg");
+    return res.send(audio);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Text-to-speech generation failed." });
+  }
+});
+
+app.post("/api/ai-practice/tts/prefetch", async (req, res) => {
+  if (!client) {
+    return res.status(503).json({ error: "OpenAI API key is not configured." });
+  }
+
+  const items = Array.isArray(req.body?.items) ? req.body.items : [];
+  if (items.length === 0) {
+    return res.status(400).json({ error: "Missing items." });
+  }
+
+  const jobs = items.slice(0, 8).map(async (item) => {
+    const text = String(item?.text || "").trim();
+    const language = String(item?.language || "en").trim();
+    if (!text) {
+      return { ok: false };
+    }
+
+    try {
+      await getCachedSpeechAudio(text.slice(0, 700), language);
+      return { ok: true };
+    } catch {
+      return { ok: false };
+    }
+  });
+
+  const results = await Promise.all(jobs);
+  return res.json({
+    ok: true,
+    warmed: results.filter((item) => item.ok).length,
+    total: results.length
+  });
+});
+
+app.get("/api/ai-practice/silence.wav", (req, res) => {
+  const ms = clamp(Number(req.query.ms || 1500), 250, 5000);
+  res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  res.setHeader("Content-Type", "audio/wav");
+  return res.send(createSilenceWav(ms));
 });
 
 app.post("/api/ai-practice/explain", async (req, res) => {
@@ -412,6 +478,58 @@ function clamp(value, min, max) {
 
 function stringOr(value, fallback) {
   return typeof value === "string" && value.trim() ? value : fallback;
+}
+
+async function getCachedSpeechAudio(text, language) {
+  await fs.mkdir(ttsCacheDir, { recursive: true });
+  const model = process.env.OPENAI_TTS_MODEL || "tts-1";
+  const voice = process.env.OPENAI_TTS_VOICE || "alloy";
+  const key = crypto
+    .createHash("sha256")
+    .update(JSON.stringify({ model, voice, language, text }))
+    .digest("hex");
+  const filePath = path.join(ttsCacheDir, `${key}.mp3`);
+
+  try {
+    return await fs.readFile(filePath);
+  } catch {
+    // Cache miss.
+  }
+
+  const response = await client.audio.speech.create({
+    model,
+    voice,
+    input: text,
+    response_format: "mp3"
+  });
+  const buffer = Buffer.from(await response.arrayBuffer());
+  await fs.writeFile(filePath, buffer);
+  return buffer;
+}
+
+function createSilenceWav(ms) {
+  const sampleRate = 44100;
+  const channels = 1;
+  const bytesPerSample = 2;
+  const samples = Math.floor((sampleRate * ms) / 1000);
+  const dataSize = samples * channels * bytesPerSample;
+  const buffer = Buffer.alloc(44 + dataSize);
+
+  buffer.write("RIFF", 0);
+  buffer.writeUInt32LE(36 + dataSize, 4);
+  buffer.write("WAVE", 8);
+  buffer.write("fmt ", 12);
+  buffer.writeUInt32LE(16, 16);
+  buffer.writeUInt16LE(1, 20);
+  buffer.writeUInt16LE(channels, 22);
+  buffer.writeUInt32LE(sampleRate, 24);
+  buffer.writeUInt32LE(sampleRate * channels * bytesPerSample, 28);
+  buffer.writeUInt16LE(channels * bytesPerSample, 32);
+  buffer.writeUInt16LE(8 * bytesPerSample, 34);
+  buffer.write("data", 36);
+  buffer.writeUInt32LE(dataSize, 40);
+
+  return buffer;
 }
 
 function toWhisperLanguage(language) {

@@ -6,7 +6,7 @@
     "node": "22.x",
     "npm": ">=10"
   },
-  "main": "expo/AppEntry.js",
+  "main": "index.js",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
@@ -30,7 +30,8 @@
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0"
+    "react-native-screens": "~4.16.0",
+    "react-native-track-player": "^4.1.2"
   },
   "devDependencies": {
     "@types/react": "~19.1.10",

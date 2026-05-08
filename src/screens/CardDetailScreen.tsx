@@ -46,7 +46,7 @@ export function CardDetailScreen({ navigation, route }: Props) {
       <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={styles.topRow}>
           <LevelBadge level={card.level} />
-          <Text style={[styles.partOfSpeech, { color: theme.textMuted, borderColor: theme.border }]}>{card.partOfSpeech}</Text>
+          <Text style={[styles.partOfSpeech, { color: theme.text, borderColor: theme.border }]}>{card.partOfSpeech}</Text>
         </View>
         <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>{t("card.learningWord")}</Text>
         <Text style={[styles.target, { color: theme.text }]}>{card.targetText}</Text>
@@ -121,13 +121,13 @@ const styles = StyleSheet.create({
     marginTop: 4
   },
   partOfSpeech: {
-    borderRadius: 999,
+    borderRadius: 10,
     borderWidth: 1,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: 14,
+    fontWeight: "800",
     overflow: "hidden",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     textTransform: "lowercase"
   },
   sectionLabel: {

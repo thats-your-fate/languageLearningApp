@@ -17,6 +17,7 @@ async function ensurePlaybackAudioMode(): Promise<void> {
       allowsRecordingIOS: false,
       interruptionModeIOS: InterruptionModeIOS.DoNotMix,
       interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+      playThroughEarpieceAndroid: false,
       playsInSilentModeIOS: true,
       shouldDuckAndroid: false,
       staysActiveInBackground: true

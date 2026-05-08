@@ -21,6 +21,12 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   background:
@@ -29,6 +35,10 @@ body {
     var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), sans-serif;
+}
+
+main {
+  overflow-x: clip;
 }
 
 h1,
@@ -45,12 +55,25 @@ a {
   text-decoration: none;
 }
 
+.fintech-app-home-section-1 {
+  border-radius: 0 !important;
+}
+
 .lighthouse-menu-button {
   align-items: center;
   background: transparent;
   display: inline-flex;
   justify-content: center;
   padding: 0;
+}
+
+.lighthouse-mobile-menu-container {
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 86px;
+  z-index: 80;
 }
 
 .lighthouse-mobile-menu {
@@ -61,9 +84,11 @@ a {
   display: grid;
   gap: 4px;
   margin-left: auto;
-  margin-top: -12px;
+  margin-right: 12px;
+  margin-top: 0;
   max-width: 320px;
   padding: 12px;
+  pointer-events: auto;
   position: relative;
   z-index: 50;
 }
@@ -83,6 +108,139 @@ a {
 .lighthouse-mobile-menu a:hover {
   background: rgba(177, 227, 70, 0.14);
   color: #d9ff74 !important;
+}
+
+.lighthouse-home-hero {
+  min-height: 820px;
+}
+
+.lighthouse-hero-screens {
+  bottom: 0;
+  max-width: 620px;
+  position: absolute;
+  right: clamp(20px, 4vw, 70px);
+  width: min(44vw, 620px);
+  z-index: 1;
+}
+
+.lighthouse-hero-screen-grid {
+  display: grid;
+  gap: 22px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 50px;
+}
+
+.lighthouse-hero-screen {
+  border-radius: 34px;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.32);
+  max-height: 650px;
+  min-width: 0;
+  object-fit: cover;
+  width: 100%;
+}
+
+.lighthouse-preview-page {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.lighthouse-preview-section {
+  margin: 0 auto;
+  max-width: 1180px;
+  padding: 72px 20px;
+  width: 100%;
+}
+
+.lighthouse-preview-header {
+  align-items: flex-end;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  margin-bottom: 34px;
+}
+
+.lighthouse-preview-eyebrow {
+  color: #64748b !important;
+  font-family: var(--font-manrope), sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.lighthouse-preview-title {
+  color: #0f172a !important;
+  font-family: var(--font-space), sans-serif;
+  font-size: clamp(32px, 5vw, 54px);
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.02;
+  margin: 10px 0 0;
+}
+
+.lighthouse-preview-copy {
+  color: #475569 !important;
+  font-family: var(--font-manrope), sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 0;
+  max-width: 520px;
+}
+
+.lighthouse-preview-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.lighthouse-preview-card {
+  background: #101827;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 24px;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  color: #ffffff;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.lighthouse-preview-phone {
+  align-items: center;
+  background: #071120;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.lighthouse-preview-phone img {
+  border-radius: 28px;
+  display: block;
+  max-height: 620px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.lighthouse-preview-card-copy {
+  margin-top: 22px;
+}
+
+.lighthouse-preview-card-copy h3 {
+  color: #ffffff !important;
+  font-family: var(--font-space), sans-serif;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.12;
+  margin: 0;
+}
+
+.lighthouse-preview-card-copy p {
+  color: #dbe4f0 !important;
+  font-family: var(--font-manrope), sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  margin: 12px 0 0;
 }
 
 .lighthouse-faq .lighthouse-faq-item,
@@ -121,11 +279,11 @@ a {
 }
 
 .lighthouse-privacy-card {
-  background: #101827;
-  border: 1px solid rgba(148, 163, 184, 0.32);
-  border-radius: 28px;
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
-  padding: 32px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
 }
 
 .lighthouse-privacy-intro,
@@ -161,12 +319,49 @@ a {
 }
 
 @media (max-width: 640px) {
-  .lighthouse-privacy-card {
-    border-radius: 22px;
-    padding: 24px;
-  }
-
   .lighthouse-privacy-section h2 {
     font-size: 23px;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .lighthouse-hero-screens {
+    right: 12px;
+    width: min(42vw, 500px);
+  }
+
+  .lighthouse-hero-screen-grid {
+    gap: 16px;
+    padding: 24px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .lighthouse-mobile-menu-container {
+    top: 76px;
+  }
+
+  .lighthouse-preview-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .lighthouse-preview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .lighthouse-mobile-menu {
+    margin-right: 0;
+    max-width: 260px;
+  }
+
+  .lighthouse-preview-section {
+    padding: 56px 16px;
+  }
+
+  .lighthouse-preview-grid {
+    grid-template-columns: 1fr;
   }
 }

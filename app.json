@@ -40,7 +40,9 @@
       "package": "com.anonymous.languageflashcards",
       "usesCleartextTraffic": true,
       "permissions": [
-        "RECORD_AUDIO"
+        "RECORD_AUDIO",
+        "FOREGROUND_SERVICE",
+        "WAKE_LOCK"
       ]
     },
     "plugins": [

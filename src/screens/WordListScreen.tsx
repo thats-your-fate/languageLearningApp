@@ -82,7 +82,7 @@ export function WordListScreen({ navigation, route }: Props) {
                 <Text style={[styles.source, { color: theme.textMuted }]}>{card.sourceText}</Text>
                 <Text style={[styles.target, { color: theme.text }]}>{card.targetText}</Text>
                 <View style={styles.metaRow}>
-                  <Text style={[styles.partOfSpeech, { color: theme.textMuted, borderColor: theme.border }]}>
+                  <Text style={[styles.partOfSpeech, { color: theme.text, borderColor: theme.border }]}>
                     {card.partOfSpeech}
                   </Text>
                   <Text style={[styles.levelMeta, { color: theme.textMuted }]}>{card.level}</Text>
@@ -129,13 +129,13 @@ const styles = StyleSheet.create({
     marginTop: 9
   },
   partOfSpeech: {
-    borderRadius: 999,
+    borderRadius: 10,
     borderWidth: 1,
-    fontSize: 12,
-    fontWeight: "900",
+    fontSize: 13,
+    fontWeight: "800",
     overflow: "hidden",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     textTransform: "lowercase"
   },
   sound: {

@@ -5,6 +5,7 @@ import { ImageBackground, StyleSheet, View } from "react-native";
 import { getSplashDurationMs, getSplashImage } from "./src/config/splashConfig";
 import { AppNavigator } from "./src/navigation/AppNavigator";
 import { getSettings } from "./src/services/settingsService";
+import { setupTrackPlayer } from "./src/services/trackPlayerSetup";
 import { LanguageCode } from "./src/types/vocabulary";
 
 const splashStartedAt = Date.now();
@@ -21,6 +22,10 @@ export default function App() {
     let mounted = true;
 
     async function prepare() {
+      setupTrackPlayer().catch(() => {
+        // Track Player is unavailable in Expo Go and only required for native media controls.
+      });
+
       const settings = await getSettings();
       if (!mounted) return;
 

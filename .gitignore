@@ -8,6 +8,7 @@ out/
 .env
 *.env
 server/.env
+server/.tts-cache/
 
 npm-debug.log*
 yarn-debug.log*
@@ -15,6 +16,7 @@ yarn-error.log*
 
 scripts/.vocabulary_generation_checkpoint.json
 scripts/.vocabulary_qa_checkpoint.json
+scripts/.tts_cache_generation_checkpoint.json
 scripts/vocabulary_qa_report.json
 src/data/vocabulary.fixed.json
 ios
