@@ -73,8 +73,8 @@ export function CardDetailScreen({ navigation, route }: Props) {
       <InfoBlock title={t("card.targetExample")} body={card.targetExample} />
 
       <AppButton title={t("card.practiceWriting")} onPress={() => navigation.navigate("AiWritingPractice", { cardId: card.id })} />
-      <AppButton title={t("card.practiceSpeaking")} variant="secondary" onPress={() => navigation.navigate("AiSpeakingPractice", { cardId: card.id })} />
-      <AppButton title={t("card.regularPractice")} variant="secondary" onPress={() => navigation.navigate("Practice", {})} />
+      <AppButton title={t("card.practiceSpeaking")} onPress={() => navigation.navigate("AiSpeakingPractice", { cardId: card.id })} />
+      <AppButton title={t("card.regularPractice")} onPress={() => navigation.navigate("Practice", {})} />
     </Screen>
   );
 }

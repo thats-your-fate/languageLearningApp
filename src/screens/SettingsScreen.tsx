@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, useColorScheme, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { AppButton } from "../components/AppButton";
 import { Screen } from "../components/Screen";
 import { useI18n } from "../i18n";
@@ -220,9 +220,7 @@ function LanguageGroup({
 }
 
 function getSelectedChipColors(theme: ReturnType<typeof useAppTheme>) {
-  return theme.isDark
-    ? { backgroundColor: "#eef1f6", color: theme.primaryText }
-    : { backgroundColor: "#5f6876", color: "#ffffff" };
+  return { backgroundColor: theme.activeElement, color: theme.activeElementText };
 }
 
 const styles = StyleSheet.create({

@@ -62,7 +62,6 @@ export function WordListScreen({ navigation, route }: Props) {
       />
       <AppButton
         title={t("wordList.practiceSentences")}
-        variant="secondary"
         onPress={() => navigation.navigate("SentencePractice", { category, groupedCategories })}
       />
 

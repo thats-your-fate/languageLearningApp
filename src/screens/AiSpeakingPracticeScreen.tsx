@@ -252,7 +252,7 @@ export function AiSpeakingPracticeScreen({ navigation, route }: Props) {
           ) : null}
         </View>
       ) : null}
-      <AppButton title={t("discovery.nextCard")} variant="secondary" onPress={nextCard} />
+      <AppButton title={t("discovery.nextCard")} onPress={nextCard} />
     </Screen>
   );
 }

@@ -204,6 +204,7 @@ export function SentencePracticeScreen({ navigation, route }: Props) {
               const isWrongPick = Boolean(feedback && isPicked && feedback.kind === "fail");
               const shouldShowCorrect = Boolean(feedback?.kind === "fail" && isCorrect);
               const shouldShowGood = Boolean(feedback && isPicked && feedback.kind !== "fail");
+              const correctColors = getCorrectChoiceColors(theme);
               return (
                 <Pressable
                   accessibilityRole="button"
@@ -216,12 +217,12 @@ export function SentencePracticeScreen({ navigation, route }: Props) {
                       backgroundColor: isWrongPick
                         ? "#5c1518"
                         : shouldShowGood || shouldShowCorrect
-                          ? "#075d45"
+                          ? correctColors.backgroundColor
                           : theme.surfaceMuted,
                       borderColor: isWrongPick
                         ? "#ff8f8f"
                         : shouldShowGood || shouldShowCorrect
-                          ? theme.success
+                          ? correctColors.borderColor
                           : theme.border
                     }
                   ]}
@@ -233,7 +234,7 @@ export function SentencePracticeScreen({ navigation, route }: Props) {
                         color: isWrongPick
                           ? "#ffb7b7"
                           : shouldShowGood || shouldShowCorrect
-                            ? theme.text
+                            ? correctColors.color
                             : theme.text
                       }
                     ]}
@@ -428,7 +429,13 @@ function getInputColors(feedback: AnswerFeedback | null, theme: ReturnType<typeo
     return { backgroundColor: "#4a3517", borderColor: "#ffd466" };
   }
 
-  return { backgroundColor: "#075d45", borderColor: "#35d99a" };
+  return getCorrectChoiceColors(theme);
+}
+
+function getCorrectChoiceColors(theme: ReturnType<typeof useAppTheme>) {
+  return theme.isDark
+    ? { backgroundColor: "#12845f", borderColor: "#35d99a", color: "#ffffff" }
+    : { backgroundColor: "#169b70", borderColor: "#169b70", color: "#ffffff" };
 }
 
 function SentenceLine({ sentence, answer }: { sentence: string; answer: string }) {

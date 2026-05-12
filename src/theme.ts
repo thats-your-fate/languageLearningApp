@@ -13,6 +13,8 @@ export type AppTheme = {
   surfaceStrong: string;
   input: string;
   activeNav: string;
+  activeElement: string;
+  activeElementText: string;
   soundButton: string;
   divider: string;
   text: string;
@@ -50,6 +52,8 @@ export function getTheme(isDark: boolean): AppTheme {
       surfaceStrong: "#dce5f1",
       input: "#e2e9f3",
       activeNav: "#eee9ff",
+      activeElement: "#5f6876",
+      activeElementText: "#ffffff",
       soundButton: "#d2dbe8",
       divider: "#d7e0ed",
       text: "#101827",
@@ -74,6 +78,8 @@ export function getTheme(isDark: boolean): AppTheme {
     surfaceStrong: "#3b4657",
     input: "#3d4858",
     activeNav: "#3a3d48",
+    activeElement: "#eef1f6",
+    activeElementText: "#0b1220",
     soundButton: "#536074",
     divider: "#2d3748",
     text: "#f4f5f8",

@@ -48,6 +48,8 @@ class TtsItem:
 
 
 def main() -> int:
+    load_env_file(ENV_PATH)
+
     parser = argparse.ArgumentParser(description="Generate OpenAI TTS cache files for vocabulary audio.")
     parser.add_argument("--input", type=Path, default=DEFAULT_VOCABULARY)
     parser.add_argument("--cache-dir", type=Path, default=DEFAULT_CACHE_DIR)
@@ -64,8 +66,6 @@ def main() -> int:
     parser.add_argument("--force", action="store_true", help="Regenerate even if checkpoint/file exists.")
     parser.add_argument("--dry-run", action="store_true", help="Print planned items without calling OpenAI.")
     args = parser.parse_args()
-
-    load_env_file(ENV_PATH)
 
     languages = parse_csv(args.languages) or DEFAULT_LANGUAGES
     levels = {level.upper() for level in parse_csv(args.levels)}
@@ -189,7 +189,7 @@ def generate_speech_with_retries(client: Any, model: str, voice: str, text: str,
 
 def cache_key(model: str, voice: str, language: str, text: str) -> str:
     payload = json.dumps(
-        {"model": model, "voice": voice, "language": language, "text": text},
+        {"model": model, "voice": voice, "language": language, "text": text[:700]},
         ensure_ascii=False,
         separators=(",", ":")
     )

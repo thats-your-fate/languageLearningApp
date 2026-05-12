@@ -7,6 +7,7 @@ import { AppSettings, LanguageCode, PracticeCardView } from "../types/vocabulary
 type PlaybackListener = (isPlaying: boolean) => void;
 
 const silenceMs = 1500;
+export const discoveryFinalSilenceMs = silenceMs;
 const artwork = require("../../assets/icon.png");
 
 export async function playDiscoveryCard(card: PracticeCardView, settings: AppSettings): Promise<boolean> {
@@ -85,6 +86,32 @@ export async function subscribeDiscoveryPlaybackState(listener: PlaybackListener
     const { default: TrackPlayer, Event, State } = await import("react-native-track-player");
     return TrackPlayer.addEventListener(Event.PlaybackState, ({ state }) => {
       listener(state === State.Playing || state === State.Buffering || state === State.Loading || state === State.Ready);
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function subscribeDiscoveryPlaybackEnded(onEnded: () => void): Promise<EmitterSubscription | null> {
+  try {
+    const { default: TrackPlayer, Event, State } = await import("react-native-track-player");
+    return TrackPlayer.addEventListener(Event.PlaybackState, ({ state }) => {
+      if (state === State.Ended) {
+        onEnded();
+      }
+    });
+  } catch {
+    return null;
+  }
+}
+
+export async function subscribeDiscoveryFinalSilence(onFinalSilence: () => void): Promise<EmitterSubscription | null> {
+  try {
+    const { default: TrackPlayer, Event } = await import("react-native-track-player");
+    return TrackPlayer.addEventListener(Event.PlaybackActiveTrackChanged, ({ track }) => {
+      if (track?.id?.endsWith("-source-example-pause")) {
+        onFinalSilence();
+      }
     });
   } catch {
     return null;

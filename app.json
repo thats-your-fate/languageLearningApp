@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Language Flashcards",
-    "slug": "language-flashcards",
+    "name": "Lighthouse",
+    "slug": "lighthouse",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,7 +21,7 @@
     "ios": {
       "supportsTablet": true,
       "icon": "./assets/icon.png",
-      "bundleIdentifier": "com.anonymous.languageflashcards",
+      "bundleIdentifier": "com.astradev.lighthouse",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Lighthouse uses the microphone to transcribe your speaking practice.",
         "UIBackgroundModes": [
@@ -37,7 +37,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ff8a22"
       },
-      "package": "com.anonymous.languageflashcards",
+      "package": "com.astradev.lighthouse",
       "usesCleartextTraffic": true,
       "permissions": [
         "RECORD_AUDIO",
@@ -48,7 +48,18 @@
     },
     "plugins": [
       "expo-font",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash/splash-default.png",
+          "resizeMode": "cover",
+          "backgroundColor": "#ff8a22",
+          "dark": {
+            "image": "./assets/splash/splash-default.png",
+            "backgroundColor": "#ff8a22"
+          }
+        }
+      ],
       [
         "expo-build-properties",
         {

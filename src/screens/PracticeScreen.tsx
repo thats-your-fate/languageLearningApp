@@ -196,7 +196,18 @@ export function PracticeScreen({ navigation, route }: Props) {
           <Text style={[styles.partOfSpeech, { color: theme.text, borderColor: theme.border }]}>{card.partOfSpeech}</Text>
         </View>
         <View style={styles.wordRow}>
-          <Text style={[styles.answer, { color: theme.text }]}>{revealed ? card.targetText : card.sourceText}</Text>
+          <Text
+            style={[
+              styles.answer,
+              revealed && styles.answerRevealed,
+              {
+                backgroundColor: revealed ? theme.soundButton : "transparent",
+                color: theme.text
+              }
+            ]}
+          >
+            {revealed ? card.targetText : card.sourceText}
+          </Text>
           <SoundButton onPress={() => speak(revealed ? card.targetText : card.sourceText, revealed ? settings.targetLanguage : settings.sourceLanguage)} />
         </View>
         {revealed ? (
@@ -246,7 +257,6 @@ export function PracticeScreen({ navigation, route }: Props) {
           <View style={styles.practiceShortcuts}>
             <AppButton
               title={t("practice.writingPractice")}
-              variant="secondary"
               onPress={() => navigation.navigate("AiWritingPractice", { cardId: card.id })}
               style={styles.shortcut}
             />
@@ -310,6 +320,12 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "900",
     lineHeight: 35
+  },
+  answerRevealed: {
+    borderRadius: 12,
+    overflow: "hidden",
+    paddingHorizontal: 10,
+    paddingVertical: 4
   },
   answerActions: {
     flexDirection: "row",

@@ -7,8 +7,11 @@ import { Screen } from "../components/Screen";
 import { useI18n } from "../i18n";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import {
+  discoveryFinalSilenceMs,
   playDiscoveryCard,
   prefetchDiscoveryCardAudio,
+  subscribeDiscoveryFinalSilence,
+  subscribeDiscoveryPlaybackEnded,
   subscribeDiscoveryPlaybackError,
   stopDiscoveryPlayback,
   subscribeDiscoveryPlaybackState,
@@ -65,15 +68,38 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
   useEffect(() => {
     let mounted = true;
     let cleanupPlaybackError: (() => void) | undefined;
+    let cleanupPlaybackEnded: (() => void) | undefined;
+    let cleanupFinalSilence: (() => void) | undefined;
     let cleanupQueueEnded: (() => void) | undefined;
     let cleanupPlaybackState: (() => void) | undefined;
+    let finalSilenceTimer: ReturnType<typeof setTimeout> | null = null;
 
-    subscribeDiscoveryQueueEnded(() => {
+    const finishTrackPlayerCard = () => {
       if (!mounted || !usingTrackPlayerRef.current || stoppedRef.current) return;
+      if (finalSilenceTimer) {
+        clearTimeout(finalSilenceTimer);
+        finalSilenceTimer = null;
+      }
+      usingTrackPlayerRef.current = false;
       setPlaying(false);
       setIndex((current) => (current + 1 >= cards.length ? 0 : current + 1));
-    }).then((subscription) => {
+    };
+
+    subscribeDiscoveryQueueEnded(finishTrackPlayerCard).then((subscription) => {
       cleanupQueueEnded = () => subscription?.remove();
+    });
+
+    subscribeDiscoveryPlaybackEnded(finishTrackPlayerCard).then((subscription) => {
+      cleanupPlaybackEnded = () => subscription?.remove();
+    });
+
+    subscribeDiscoveryFinalSilence(() => {
+      if (finalSilenceTimer) {
+        clearTimeout(finalSilenceTimer);
+      }
+      finalSilenceTimer = setTimeout(finishTrackPlayerCard, discoveryFinalSilenceMs + 350);
+    }).then((subscription) => {
+      cleanupFinalSilence = () => subscription?.remove();
     });
 
     subscribeDiscoveryPlaybackState((isPlaying) => {
@@ -94,7 +120,12 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
 
     return () => {
       mounted = false;
+      if (finalSilenceTimer) {
+        clearTimeout(finalSilenceTimer);
+      }
       cleanupPlaybackError?.();
+      cleanupPlaybackEnded?.();
+      cleanupFinalSilence?.();
       cleanupQueueEnded?.();
       cleanupPlaybackState?.();
     };

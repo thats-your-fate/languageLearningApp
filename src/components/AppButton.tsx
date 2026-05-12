@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, useColorScheme, ViewStyle } from "react-native";
+import { Pressable, StyleSheet, Text, ViewStyle } from "react-native";
 import { useAppTheme } from "../theme";
 
 type Props = {
@@ -22,7 +22,7 @@ export function AppButton({ title, onPress, variant = "primary", disabled, style
       style={({ pressed }) => [
         styles.button,
         {
-          backgroundColor: isPrimary ? "#eef1f6" : isDanger ? theme.danger : variant === "secondary" ? theme.surfaceMuted : "transparent",
+          backgroundColor: isPrimary ? theme.activeElement : isDanger ? theme.danger : variant === "secondary" ? theme.surfaceMuted : "transparent",
           borderColor: isPrimary || isDanger ? "transparent" : theme.border
         },
         variant !== "ghost" && styles.outlined,
@@ -35,7 +35,7 @@ export function AppButton({ title, onPress, variant = "primary", disabled, style
         style={[
           styles.text,
           {
-            color: isPrimary ? theme.primaryText : isDanger ? theme.text : theme.text
+            color: isPrimary ? theme.activeElementText : isDanger ? theme.text : theme.text
           }
         ]}
       >

@@ -888,7 +888,7 @@ function getDictionaryLanguage(language: LanguageCode): "en" | "de" | "pt-BR" | 
   return "en";
 }
 
-function getDeviceLanguage(): LanguageCode {
+export function getDeviceLanguage(): LanguageCode {
   const locale =
     Platform.OS === "ios"
       ? NativeModules.SettingsManager?.settings?.AppleLocale ||
@@ -900,6 +900,7 @@ function getDeviceLanguage(): LanguageCode {
   if (normalized.startsWith("de")) return "de";
   if (normalized.startsWith("pt")) return "pt-BR";
   if (normalized.startsWith("it")) return "it";
+  if (normalized.startsWith("es")) return "es";
   if (normalized.startsWith("fr")) return "fr";
   return "en";
 }

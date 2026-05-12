@@ -1,8 +1,8 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, useColorScheme, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { AppButton } from "../components/AppButton";
-import { useI18n } from "../i18n";
+import { getDeviceLanguage, useI18n } from "../i18n";
 import { Screen } from "../components/Screen";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import { saveSettings } from "../services/settingsService";
@@ -32,8 +32,8 @@ export function OnboardingScreen({ navigation, route }: Props) {
   const { languageName, setLanguage, t } = useI18n();
   const [step, setStep] = useState(0);
   const initial = route.params?.settings;
-  const [sourceLanguage, setSourceLanguage] = useState<LanguageCode>(initial?.sourceLanguage ?? "en");
-  const [targetLanguage, setTargetLanguage] = useState<LanguageCode>(initial?.targetLanguage ?? "pt-BR");
+  const [sourceLanguage, setSourceLanguage] = useState<LanguageCode>(initial?.sourceLanguage ?? getDeviceLanguage());
+  const [targetLanguage, setTargetLanguage] = useState<LanguageCode | null>(initial?.targetLanguage ?? null);
   const [activeLevel, setActiveLevel] = useState<StarterLevel>(initial?.activeLevel === "All" ? "A1" : initial?.activeLevel ?? "A1");
   const availableLevels = getAvailableStarterLevels().length ? getAvailableStarterLevels() : STARTER_LEVELS;
 
@@ -46,7 +46,7 @@ export function OnboardingScreen({ navigation, route }: Props) {
         enableAiExplanations: true
       }),
       sourceLanguage,
-      targetLanguage,
+      targetLanguage: targetLanguage ?? "pt-BR",
       activeLevel,
       hasCompletedOnboarding: true
     };
@@ -62,6 +62,7 @@ export function OnboardingScreen({ navigation, route }: Props) {
       : step === 1
         ? t("onboarding.targetSubtitle")
         : t("onboarding.levelSubtitle");
+  const canContinue = step !== 1 || targetLanguage !== null;
 
   return (
     <Screen title={t("onboarding.welcome")} scroll activeTab={undefined}>
@@ -101,7 +102,11 @@ export function OnboardingScreen({ navigation, route }: Props) {
 
       <View style={styles.actions}>
         {step > 0 ? <AppButton title={t("common.back")} variant="secondary" onPress={() => setStep((current) => current - 1)} /> : null}
-        <AppButton title={step === 2 ? t("onboarding.startLearning") : t("common.next")} onPress={() => (step === 2 ? finish() : setStep((current) => current + 1))} />
+        <AppButton
+          title={step === 2 ? t("onboarding.startLearning") : t("common.next")}
+          disabled={!canContinue}
+          onPress={() => (step === 2 ? finish() : setStep((current) => current + 1))}
+        />
       </View>
     </Screen>
   );
@@ -116,12 +121,12 @@ function Choice({ label, selected, onPress }: { label: string; selected: boolean
       style={[
         styles.choice,
         {
-          backgroundColor: selected ? "#eef1f6" : theme.surface,
+          backgroundColor: selected ? theme.activeElement : theme.surface,
           borderColor: selected ? "transparent" : theme.border
         }
       ]}
     >
-      <Text style={[styles.choiceText, { color: selected ? theme.primaryText : theme.text }]}>{label}</Text>
+      <Text style={[styles.choiceText, { color: selected ? theme.activeElementText : theme.text }]}>{label}</Text>
     </Pressable>
   );
 }
