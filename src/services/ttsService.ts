@@ -13,6 +13,20 @@ const locales: Record<LanguageCode, string> = {
 };
 
 let activeSound: Audio.Sound | null = null;
+const playbackSettleMs = 300;
+const prefetchChunkSize = 8;
+
+export type TtsPrefetchItem = {
+  text: string;
+  language: LanguageCode;
+};
+
+function estimateSpeechTimeoutMs(text: string): number {
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  const characters = text.trim().length;
+  const estimate = Math.max(words * 900, characters * 140) + 5000;
+  return Math.min(90000, Math.max(8000, estimate));
+}
 
 async function ensurePlaybackAudioMode(): Promise<void> {
   try {
@@ -64,13 +78,35 @@ export async function stop(): Promise<void> {
   }
 }
 
+export async function prefetchTtsAudio(items: TtsPrefetchItem[]): Promise<void> {
+  const apiUrl = getAiApiUrl("/api/ai-practice/tts/prefetch");
+  if (!apiUrl) return;
+
+  const uniqueItems = dedupePrefetchItems(items);
+  for (let index = 0; index < uniqueItems.length; index += prefetchChunkSize) {
+    const chunk = uniqueItems.slice(index, index + prefetchChunkSize);
+    try {
+      await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: chunk })
+      });
+    } catch {
+      return;
+    }
+  }
+}
+
 async function playOpenAiTts(text: string, languageCode: LanguageCode, waitUntilDone: boolean): Promise<void> {
   const url = getAiApiUrl(`/api/ai-practice/tts?${new URLSearchParams({ text, language: languageCode }).toString()}`);
   if (!url) {
     throw new Error("TTS backend URL is not configured.");
   }
 
-  const { sound } = await Audio.Sound.createAsync({ uri: url }, { shouldPlay: true });
+  const { sound } = await Audio.Sound.createAsync(
+    { uri: url },
+    { progressUpdateIntervalMillis: 250, shouldPlay: true }
+  );
   activeSound = sound;
 
   if (!waitUntilDone) {
@@ -79,21 +115,48 @@ async function playOpenAiTts(text: string, languageCode: LanguageCode, waitUntil
         if (activeSound === sound) {
           activeSound = null;
         }
-        sound.unloadAsync();
+        setTimeout(() => {
+          sound.unloadAsync();
+        }, playbackSettleMs);
       }
     });
     return;
   }
 
-  await new Promise<void>((resolve) => {
-    sound.setOnPlaybackStatusUpdate((status) => {
-      if (!status.isLoaded || !status.didJustFinish) {
-        return;
-      }
+  await new Promise<void>((resolve, reject) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
       if (activeSound === sound) {
         activeSound = null;
       }
-      sound.unloadAsync().finally(resolve);
+      setTimeout(() => {
+        sound.unloadAsync().finally(resolve);
+      }, playbackSettleMs);
+    };
+    const fail = (message?: string) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      if (activeSound === sound) {
+        activeSound = null;
+      }
+      sound.unloadAsync().finally(() => reject(new Error(message || "TTS playback failed.")));
+    };
+    const timeout = setTimeout(finish, estimateSpeechTimeoutMs(text));
+
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (!status.isLoaded) {
+        if (status.error) {
+          fail(status.error);
+        }
+        return;
+      }
+      if (status.didJustFinish) {
+        finish();
+      }
     });
   });
 }
@@ -105,6 +168,18 @@ function speakWithDeviceTts(text: string, languageCode: LanguageCode): void {
   } catch {
     console.log(`[tts placeholder] ${languageCode}: ${text}`);
   }
+}
+
+function dedupePrefetchItems(items: TtsPrefetchItem[]): TtsPrefetchItem[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const text = item.text.trim();
+    if (!text) return false;
+    const key = `${item.language}:${text}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 async function speakWithDeviceTtsUntilDone(text: string, languageCode: LanguageCode): Promise<void> {

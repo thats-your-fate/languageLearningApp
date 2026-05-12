@@ -20,6 +20,7 @@ Notes:
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
 import json
 import os
@@ -57,11 +58,12 @@ def main() -> int:
     parser.add_argument("--languages", default=",".join(DEFAULT_LANGUAGES), help="Comma-separated language codes.")
     parser.add_argument("--levels", default="", help="Optional comma-separated CEFR levels, e.g. A1,A2.")
     parser.add_argument("--fields", default=",".join(DEFAULT_FIELDS), help="Comma-separated fields: text,example.")
-    parser.add_argument("--model", default=os.getenv("OPENAI_TTS_MODEL", "tts-1"))
+    parser.add_argument("--model", default=os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts"))
     parser.add_argument("--voice", default=os.getenv("OPENAI_TTS_VOICE", "alloy"))
     parser.add_argument("--limit", type=int, default=None, help="Optional max unique audio items.")
     parser.add_argument("--start-at", type=int, default=0, help="Skip this many unique audio items.")
     parser.add_argument("--sleep", type=float, default=0.05, help="Seconds to sleep between TTS calls.")
+    parser.add_argument("--concurrency", type=int, default=1, help="Number of TTS requests to run at once.")
     parser.add_argument("--max-retries", type=int, default=3)
     parser.add_argument("--force", action="store_true", help="Regenerate even if checkpoint/file exists.")
     parser.add_argument("--dry-run", action="store_true", help="Print planned items without calling OpenAI.")
@@ -109,6 +111,7 @@ def main() -> int:
     client = OpenAI()
     generated = 0
     skipped = 0
+    jobs: list[tuple[int, TtsItem, str, Path]] = []
 
     for index, item in enumerate(unique_items, start=1):
         key = cache_key(args.model, args.voice, item.language, item.text)
@@ -116,14 +119,36 @@ def main() -> int:
         if not args.force and checkpoint.get(key) == "ok" and file_path.exists():
             skipped += 1
             continue
+        jobs.append((index, item, key, file_path))
 
-        print(f"[{index}/{len(unique_items)}] {item.language} {item.field} {item.card_id}: {item.text[:80]}")
-        audio = generate_speech_with_retries(client, args.model, args.voice, item.text[:700], args.max_retries)
-        file_path.write_bytes(audio)
-        checkpoint[key] = "ok"
-        write_json(args.checkpoint, checkpoint)
-        generated += 1
-        time.sleep(args.sleep)
+    concurrency = max(1, args.concurrency)
+    if concurrency == 1:
+        for index, item, key, file_path in jobs:
+            print(f"[{index}/{len(unique_items)}] {item.language} {item.field} {item.card_id}: {item.text[:80]}")
+            generate_cache_file(client, args.model, args.voice, args.max_retries, item, file_path)
+            checkpoint[key] = "ok"
+            write_json(args.checkpoint, checkpoint)
+            generated += 1
+            time.sleep(args.sleep)
+    else:
+        print(f"Running with concurrency: {concurrency}")
+        with ThreadPoolExecutor(max_workers=concurrency) as executor:
+            futures = {
+                executor.submit(generate_cache_file, client, args.model, args.voice, args.max_retries, item, file_path): (
+                    index,
+                    item,
+                    key,
+                    file_path,
+                )
+                for index, item, key, file_path in jobs
+            }
+            for future in as_completed(futures):
+                index, item, key, _file_path = futures[future]
+                future.result()
+                checkpoint[key] = "ok"
+                write_json(args.checkpoint, checkpoint)
+                generated += 1
+                print(f"[{index}/{len(unique_items)}] done {item.language} {item.field} {item.card_id}: {item.text[:80]}")
 
     print(f"Generated: {generated}")
     print(f"Skipped cached: {skipped}")
@@ -167,16 +192,38 @@ def dedupe_items(items: list[TtsItem], model: str, voice: str) -> list[TtsItem]:
     return unique
 
 
-def generate_speech_with_retries(client: Any, model: str, voice: str, text: str, max_retries: int) -> bytes:
+def generate_cache_file(
+    client: Any,
+    model: str,
+    voice: str,
+    max_retries: int,
+    item: TtsItem,
+    file_path: Path,
+) -> None:
+    audio = generate_speech_with_retries(
+        client,
+        model,
+        voice,
+        speech_input_for_tts(item.text[:700]),
+        speech_instructions_for_language(item.language) if supports_speech_instructions(model) else None,
+        max_retries,
+    )
+    file_path.write_bytes(audio)
+
+
+def generate_speech_with_retries(client: Any, model: str, voice: str, text: str, instructions: str | None, max_retries: int) -> bytes:
     last_error: Exception | None = None
     for attempt in range(1, max_retries + 1):
         try:
-            response = client.audio.speech.create(
-                model=model,
-                voice=voice,
-                input=text,
-                response_format="mp3"
-            )
+            params = {
+                "model": model,
+                "voice": voice,
+                "input": text,
+                "response_format": "mp3",
+            }
+            if instructions:
+                params["instructions"] = instructions
+            response = client.audio.speech.create(**params)
             return bytes(response.content) if hasattr(response, "content") else bytes(response.read())
         except Exception as error:
             last_error = error
@@ -187,9 +234,39 @@ def generate_speech_with_retries(client: Any, model: str, voice: str, text: str,
     raise last_error
 
 
+def speech_input_for_tts(text: str) -> str:
+    normalized = text.strip()
+    if normalized and not any(character.isspace() for character in normalized) and normalized[-1] not in ".!?。！？":
+        return f"{normalized}."
+    return normalized
+
+
+def speech_instructions_for_language(language: str) -> str:
+    instructions = {
+        "en": "Pronounce the supplied vocabulary item naturally in English, even if it is a single isolated word or short phrase. Speak only the supplied text.",
+        "de": "Pronounce the supplied vocabulary item naturally in German, even if it is a single isolated word or short phrase. Speak only the supplied text.",
+        "pt-BR": 'Pronounce the supplied vocabulary item naturally in Brazilian Portuguese, even if it is a single isolated word or short phrase. Speak only the supplied text. For short phrases such as "depois de", use standard Brazilian Portuguese pronunciation.',
+        "it": "Pronounce the supplied vocabulary item naturally in Italian, even if it is a single isolated word or short phrase. Speak only the supplied text.",
+        "es": "Pronounce the supplied vocabulary item naturally in Spanish, even if it is a single isolated word or short phrase. Speak only the supplied text.",
+        "fr": "Pronounce the supplied vocabulary item naturally in French, even if it is a single isolated word or short phrase. Speak only the supplied text.",
+    }
+    return instructions.get(language, instructions["en"])
+
+
+def supports_speech_instructions(model: str) -> bool:
+    return model.strip() not in {"tts-1", "tts-1-hd"}
+
+
 def cache_key(model: str, voice: str, language: str, text: str) -> str:
+    instructions = speech_instructions_for_language(language) if supports_speech_instructions(model) else None
     payload = json.dumps(
-        {"model": model, "voice": voice, "language": language, "text": text[:700]},
+        {
+            "model": model,
+            "voice": voice,
+            "language": language,
+            "instructions": instructions,
+            "text": text[:700],
+        },
         ensure_ascii=False,
         separators=(",", ":")
     )

@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, useColorScheme, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useAppTheme } from "../theme";
 import { AnswerFeedback } from "../services/feedbackService";
 
@@ -11,24 +11,25 @@ type Props = {
 export function AnswerFeedbackBanner({ feedback, revealedMessage = "Answer revealed." }: Props) {
   const theme = useAppTheme();
   const kind = feedback?.kind ?? "exact";
-  const backgroundColor = feedback
+  const accentColor = feedback
     ? kind === "fail"
       ? theme.danger
       : kind === "close"
         ? theme.warning
         : theme.success
     : theme.success;
-  const color = feedback
-    ? kind === "fail"
-      ? "#ff9a9a"
-      : kind === "close"
-        ? "#ffd166"
-        : "#6ff0bd"
-    : "#6ff0bd";
+  const isFail = feedback?.kind === "fail";
+  const color = isFail
+    ? theme.danger
+    : feedback
+      ? kind === "close"
+        ? theme.warning
+        : theme.success
+      : theme.success;
 
   return (
     <View style={styles.row}>
-      <View style={[styles.icon, { backgroundColor }]}>
+      <View style={[styles.icon, { backgroundColor: accentColor }]}>
         <Ionicons name={feedback?.icon ?? "eye"} size={23} color="#ffffff" />
       </View>
       <Text style={[styles.text, { color }]}>{feedback?.message ?? revealedMessage}</Text>
@@ -47,7 +48,8 @@ const styles = StyleSheet.create({
   row: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 12
+    gap: 12,
+    minHeight: 40
   },
   text: {
     flex: 1,

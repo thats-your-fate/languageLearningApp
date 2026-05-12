@@ -7,11 +7,9 @@ import { Screen } from "../components/Screen";
 import { useI18n } from "../i18n";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import {
-  discoveryFinalSilenceMs,
+  estimateDiscoveryPlaybackMs,
   playDiscoveryCard,
   prefetchDiscoveryCardAudio,
-  subscribeDiscoveryFinalSilence,
-  subscribeDiscoveryPlaybackEnded,
   subscribeDiscoveryPlaybackError,
   stopDiscoveryPlayback,
   subscribeDiscoveryPlaybackState,
@@ -32,6 +30,8 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
   const { t } = useI18n();
   const timers = useRef<{ timer: ReturnType<typeof setTimeout>; resolve: () => void }[]>([]);
   const playbackRun = useRef(0);
+  const finishTrackPlayerCardRef = useRef<(() => void) | null>(null);
+  const trackPlayerWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stoppedRef = useRef(false);
   const forceSpeechFallbackRef = useRef(false);
   const usingTrackPlayerRef = useRef(false);
@@ -68,38 +68,24 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
   useEffect(() => {
     let mounted = true;
     let cleanupPlaybackError: (() => void) | undefined;
-    let cleanupPlaybackEnded: (() => void) | undefined;
-    let cleanupFinalSilence: (() => void) | undefined;
     let cleanupQueueEnded: (() => void) | undefined;
     let cleanupPlaybackState: (() => void) | undefined;
-    let finalSilenceTimer: ReturnType<typeof setTimeout> | null = null;
 
     const finishTrackPlayerCard = () => {
       if (!mounted || !usingTrackPlayerRef.current || stoppedRef.current) return;
-      if (finalSilenceTimer) {
-        clearTimeout(finalSilenceTimer);
-        finalSilenceTimer = null;
+      if (trackPlayerWatchdogRef.current) {
+        clearTimeout(trackPlayerWatchdogRef.current);
+        trackPlayerWatchdogRef.current = null;
       }
       usingTrackPlayerRef.current = false;
+      void stopDiscoveryPlayback();
       setPlaying(false);
       setIndex((current) => (current + 1 >= cards.length ? 0 : current + 1));
     };
+    finishTrackPlayerCardRef.current = finishTrackPlayerCard;
 
     subscribeDiscoveryQueueEnded(finishTrackPlayerCard).then((subscription) => {
       cleanupQueueEnded = () => subscription?.remove();
-    });
-
-    subscribeDiscoveryPlaybackEnded(finishTrackPlayerCard).then((subscription) => {
-      cleanupPlaybackEnded = () => subscription?.remove();
-    });
-
-    subscribeDiscoveryFinalSilence(() => {
-      if (finalSilenceTimer) {
-        clearTimeout(finalSilenceTimer);
-      }
-      finalSilenceTimer = setTimeout(finishTrackPlayerCard, discoveryFinalSilenceMs + 350);
-    }).then((subscription) => {
-      cleanupFinalSilence = () => subscription?.remove();
     });
 
     subscribeDiscoveryPlaybackState((isPlaying) => {
@@ -120,12 +106,12 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
 
     return () => {
       mounted = false;
-      if (finalSilenceTimer) {
-        clearTimeout(finalSilenceTimer);
+      finishTrackPlayerCardRef.current = null;
+      if (trackPlayerWatchdogRef.current) {
+        clearTimeout(trackPlayerWatchdogRef.current);
+        trackPlayerWatchdogRef.current = null;
       }
       cleanupPlaybackError?.();
-      cleanupPlaybackEnded?.();
-      cleanupFinalSilence?.();
       cleanupQueueEnded?.();
       cleanupPlaybackState?.();
     };
@@ -146,6 +132,10 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
       resolve();
     });
     timers.current = [];
+    if (trackPlayerWatchdogRef.current) {
+      clearTimeout(trackPlayerWatchdogRef.current);
+      trackPlayerWatchdogRef.current = null;
+    }
   }
 
   async function playSequence() {
@@ -159,6 +149,9 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
       usingTrackPlayerRef.current = await playDiscoveryCard(card, settings);
       if (runId !== playbackRun.current || stoppedRef.current) return;
       if (usingTrackPlayerRef.current) {
+        trackPlayerWatchdogRef.current = setTimeout(() => {
+          finishTrackPlayerCardRef.current?.();
+        }, estimateDiscoveryPlaybackMs(card));
         const nextCard = cards[index + 1] ?? cards[0];
         if (nextCard && nextCard.id !== card.id) {
           prefetchDiscoveryCardAudio(nextCard, settings);

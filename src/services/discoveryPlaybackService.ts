@@ -127,6 +127,16 @@ export async function subscribeDiscoveryPlaybackError(onError: () => void): Prom
   }
 }
 
+export function estimateDiscoveryPlaybackMs(card: PracticeCardView): number {
+  const spokenMs = discoverySpokenItemsForTexts(card).reduce((total, text) => {
+    const words = text.trim().split(/\s+/).filter(Boolean).length;
+    const characters = text.trim().length;
+    return total + Math.max(1800, words * 900, characters * 140);
+  }, 0);
+
+  return spokenMs + silenceMs * 4 + 8000;
+}
+
 function buildDiscoveryTracks(card: PracticeCardView, settings: AppSettings): Track[] | null {
   const spoken = discoverySpokenItems(card, settings);
 
@@ -196,6 +206,10 @@ function discoverySpokenItems(card: PracticeCardView, settings: AppSettings) {
       language: settings.sourceLanguage
     }
   ];
+}
+
+function discoverySpokenItemsForTexts(card: PracticeCardView) {
+  return [card.targetText, card.sourceText, card.targetExample, card.sourceExample];
 }
 
 function ttsUrl(text: string, language: LanguageCode): string | null {

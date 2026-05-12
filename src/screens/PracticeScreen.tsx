@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, useColorScheme, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { AnswerFeedbackBanner } from "../components/AnswerFeedbackBanner";
 import { AppButton } from "../components/AppButton";
 import { LearnerBadge } from "../components/LearnerBadge";
@@ -12,7 +12,7 @@ import { playFailAlert, playSuccessAlert } from "../services/alertSoundService";
 import { AnswerFeedback, getAnswerFeedback } from "../services/feedbackService";
 import { getAllProgress, getDueCards, recordReview } from "../services/progressService";
 import { getSettings } from "../services/settingsService";
-import { speak } from "../services/ttsService";
+import { prefetchTtsAudio, speak } from "../services/ttsService";
 import { getPracticeCards, shuffleCards } from "../services/vocabularyService";
 import { useAppTheme } from "../theme";
 import { DifficultyGrade } from "../types/progress";
@@ -27,11 +27,13 @@ const gradeStyles: Record<DifficultyGrade, string> = {
   good: "#2854d9",
   easy: "#08704f"
 };
+const audioPrefetchWindow = 8;
 
 export function PracticeScreen({ navigation, route }: Props) {
   const theme = useAppTheme();
   const { t } = useI18n();
   const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prefetchedAudio = useRef<Set<string>>(new Set());
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [cards, setCards] = useState<PracticeCardView[]>([]);
   const [index, setIndex] = useState(0);
@@ -50,6 +52,7 @@ export function PracticeScreen({ navigation, route }: Props) {
     setRevealed(false);
     setTypedAnswer("");
     setFeedback(null);
+    prefetchedAudio.current.clear();
     getSettings().then(async (saved) => {
       setSettings(saved);
       const allCards = getPracticeCards(saved.sourceLanguage, saved.targetLanguage).filter(
@@ -67,6 +70,7 @@ export function PracticeScreen({ navigation, route }: Props) {
       setCards(nextSessionCards);
       setSessionTotal(nextSessionCards.length);
       setLoaded(true);
+      prefetchPracticeAudio(nextSessionCards.slice(0, audioPrefetchWindow), saved);
     });
 
     return () => {
@@ -78,6 +82,12 @@ export function PracticeScreen({ navigation, route }: Props) {
 
   const card = cards[index];
   const remaining = cards.length;
+  const revealedAnswerColor = feedback && feedback.kind !== "fail" ? gradeStyles.easy : theme.text;
+
+  useEffect(() => {
+    if (!settings || cards.length === 0) return;
+    prefetchPracticeAudio(cards.slice(index, index + audioPrefetchWindow), settings);
+  }, [cards, index, settings]);
 
   function playRevealAudio(nextFeedback?: AnswerFeedback | null) {
     if (!card || !settings) return;
@@ -105,6 +115,24 @@ export function PracticeScreen({ navigation, route }: Props) {
     setFeedback(nextFeedback);
     setRevealed(true);
     playRevealAudio(nextFeedback);
+  }
+
+  function prefetchPracticeAudio(nextCards: PracticeCardView[], savedSettings: AppSettings) {
+    const items = nextCards.flatMap((item) => [
+      { text: item.targetText, language: savedSettings.targetLanguage },
+      { text: item.targetExample, language: savedSettings.targetLanguage },
+      { text: item.sourceText, language: savedSettings.sourceLanguage },
+      { text: item.sourceExample, language: savedSettings.sourceLanguage }
+    ]);
+    const newItems = items.filter((item) => {
+      const key = `${item.language}:${item.text}`;
+      if (prefetchedAudio.current.has(key)) return false;
+      prefetchedAudio.current.add(key);
+      return true;
+    });
+    if (newItems.length > 0) {
+      void prefetchTtsAudio(newItems);
+    }
   }
 
   async function grade(value: DifficultyGrade) {
@@ -201,8 +229,8 @@ export function PracticeScreen({ navigation, route }: Props) {
               styles.answer,
               revealed && styles.answerRevealed,
               {
-                backgroundColor: revealed ? theme.soundButton : "transparent",
-                color: theme.text
+                backgroundColor: "transparent",
+                color: revealed ? revealedAnswerColor : theme.text
               }
             ]}
           >
@@ -324,7 +352,6 @@ const styles = StyleSheet.create({
   answerRevealed: {
     borderRadius: 12,
     overflow: "hidden",
-    paddingHorizontal: 10,
     paddingVertical: 4
   },
   answerActions: {

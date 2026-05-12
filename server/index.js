@@ -482,11 +482,12 @@ function stringOr(value, fallback) {
 
 async function getCachedSpeechAudio(text, language) {
   await fs.mkdir(ttsCacheDir, { recursive: true });
-  const model = process.env.OPENAI_TTS_MODEL || "tts-1";
+  const model = process.env.OPENAI_TTS_MODEL || "gpt-4o-mini-tts";
   const voice = process.env.OPENAI_TTS_VOICE || "alloy";
+  const instructions = supportsSpeechInstructions(model) ? speechInstructionsForLanguage(language) : undefined;
   const key = crypto
     .createHash("sha256")
-    .update(JSON.stringify({ model, voice, language, text }))
+    .update(JSON.stringify({ model, voice, language, instructions, text }))
     .digest("hex");
   const filePath = path.join(ttsCacheDir, `${key}.mp3`);
 
@@ -496,15 +497,45 @@ async function getCachedSpeechAudio(text, language) {
     // Cache miss.
   }
 
-  const response = await client.audio.speech.create({
+  const speechParams = {
     model,
     voice,
-    input: text,
+    input: speechInputForTts(text),
     response_format: "mp3"
-  });
+  };
+  if (instructions) {
+    speechParams.instructions = instructions;
+  }
+
+  const response = await client.audio.speech.create(speechParams);
   const buffer = Buffer.from(await response.arrayBuffer());
   await fs.writeFile(filePath, buffer);
   return buffer;
+}
+
+function speechInputForTts(text) {
+  const normalized = String(text || "").trim();
+  if (!normalized) return normalized;
+
+  const isSingleWord = !/\s/.test(normalized);
+  const hasTerminalPunctuation = /[.!?。！？]$/.test(normalized);
+  return isSingleWord && !hasTerminalPunctuation ? `${normalized}.` : normalized;
+}
+
+function speechInstructionsForLanguage(language) {
+  const instructions = {
+    en: "Pronounce the supplied vocabulary item naturally in English, even if it is a single isolated word or short phrase. Speak only the supplied text.",
+    de: "Pronounce the supplied vocabulary item naturally in German, even if it is a single isolated word or short phrase. Speak only the supplied text.",
+    "pt-BR": "Pronounce the supplied vocabulary item naturally in Brazilian Portuguese, even if it is a single isolated word or short phrase. Speak only the supplied text. For short phrases such as \"depois de\", use standard Brazilian Portuguese pronunciation.",
+    it: "Pronounce the supplied vocabulary item naturally in Italian, even if it is a single isolated word or short phrase. Speak only the supplied text.",
+    es: "Pronounce the supplied vocabulary item naturally in Spanish, even if it is a single isolated word or short phrase. Speak only the supplied text.",
+    fr: "Pronounce the supplied vocabulary item naturally in French, even if it is a single isolated word or short phrase. Speak only the supplied text."
+  };
+  return instructions[language] || instructions.en;
+}
+
+function supportsSpeechInstructions(model) {
+  return !["tts-1", "tts-1-hd"].includes(String(model || "").trim());
 }
 
 function createSilenceWav(ms) {

@@ -429,13 +429,11 @@ function getInputColors(feedback: AnswerFeedback | null, theme: ReturnType<typeo
     return { backgroundColor: "#4a3517", borderColor: "#ffd466" };
   }
 
-  return getCorrectChoiceColors(theme);
+  return { backgroundColor: theme.input, borderColor: getCorrectChoiceColors(theme).borderColor };
 }
 
 function getCorrectChoiceColors(theme: ReturnType<typeof useAppTheme>) {
-  return theme.isDark
-    ? { backgroundColor: "#12845f", borderColor: "#35d99a", color: "#ffffff" }
-    : { backgroundColor: "#169b70", borderColor: "#169b70", color: "#ffffff" };
+  return { backgroundColor: theme.surfaceMuted, borderColor: theme.success, color: theme.success };
 }
 
 function SentenceLine({ sentence, answer }: { sentence: string; answer: string }) {
