@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Check and optionally fix vocabulary translations/examples with OpenAI.
+Check and fix vocabulary translations/examples with OpenAI.
 
 The script validates each card translation per language:
   - translated word/phrase is in the requested language
@@ -8,12 +8,12 @@ The script validates each card translation per language:
   - translated word/phrase preserves the English/meaningLock meaning
   - example sentence preserves the English example meaning and uses the vocabulary item naturally
 
-By default this is report-only and does not mutate vocabulary.json.
+By default this fixes vocabulary.json in place as each card is checked.
 
 Usage:
   python3 scripts/qa_vocabulary_with_openai.py --limit 20
-  python3 scripts/qa_vocabulary_with_openai.py --fix --output src/data/vocabulary.fixed.json
-  python3 scripts/qa_vocabulary_with_openai.py --fix --in-place
+  python3 scripts/qa_vocabulary_with_openai.py --check-only --limit 20
+  python3 scripts/qa_vocabulary_with_openai.py --output src/data/vocabulary.fixed.json
 
 Notes:
   - OPENAI_API_KEY is loaded from server/.env if present.
@@ -44,9 +44,9 @@ DEFAULT_LANGUAGES = ["en", "de", "pt-BR", "it", "es", "fr"]
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="QA and optionally fix vocabulary JSON with OpenAI.")
+    parser = argparse.ArgumentParser(description="QA and fix vocabulary JSON with OpenAI.")
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
-    parser.add_argument("--output", type=Path, default=None, help="Where to write fixed vocabulary when --fix is used.")
+    parser.add_argument("--output", type=Path, default=None, help="Where to write fixed vocabulary. Defaults to overwriting --input.")
     parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
     parser.add_argument("--checkpoint", type=Path, default=DEFAULT_CHECKPOINT)
     parser.add_argument("--languages", default=",".join(DEFAULT_LANGUAGES), help="Comma-separated languages to check.")
@@ -56,13 +56,13 @@ def main() -> int:
     parser.add_argument("--start-at", type=int, default=0)
     parser.add_argument("--sleep", type=float, default=0.25)
     parser.add_argument("--max-retries", type=int, default=3)
-    parser.add_argument("--fix", action="store_true", help="Apply suggested text/example fixes to the output JSON.")
-    parser.add_argument("--in-place", action="store_true", help="With --fix, overwrite the input file.")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--fix", dest="fix", action="store_true", help="Apply suggested text/example fixes. This is the default.")
+    mode.add_argument("--check-only", dest="fix", action="store_false", help="Only write the QA report; do not change vocabulary JSON.")
+    parser.add_argument("--in-place", action="store_true", help="Overwrite the input file. This is the default when no --output is provided.")
     parser.add_argument("--force", action="store_true", help="Ignore checkpoint and re-check selected cards.")
+    parser.set_defaults(fix=True)
     args = parser.parse_args()
-
-    if args.in_place and not args.fix:
-        raise ValueError("--in-place only makes sense together with --fix")
 
     load_env_file(ENV_PATH)
     ensure_openai_available()
@@ -102,15 +102,16 @@ def main() -> int:
         result_by_id = check_batch_with_retries(client, args.model, batch, languages, args.max_retries)
 
         for card in batch:
-          card_id = str(card.get("id"))
-          result = result_by_id[card_id]
-          report_results[card_id] = result
-          checkpoint[card_id] = card_signature(card, languages)
-
-          if args.fix:
-              changed_languages = apply_fixes(fixed_by_id[card_id], result, languages)
-              if changed_languages:
-                  print(f"Fixed {card_id}: {', '.join(changed_languages)}")
+            card_id = str(card.get("id"))
+            result = result_by_id[card_id]
+            report_results[card_id] = result
+            if args.fix:
+                changed_languages = apply_fixes(fixed_by_id[card_id], result, languages)
+                if changed_languages:
+                    print(f"Fixed {card_id}: {', '.join(changed_languages)}")
+                checkpoint[card_id] = card_signature(fixed_by_id[card_id], languages)
+            else:
+                checkpoint[card_id] = card_signature(card, languages)
 
         write_json(args.checkpoint, checkpoint)
         write_json(args.report, with_summary(report))
@@ -163,7 +164,8 @@ def check_batch(client: Any, model: str, batch: list[dict[str, Any]], languages:
                     "For each language, check that the word or phrase is in that language, preserves the intended meaning, "
                     "and that the example sentence is natural, in that language, uses the vocabulary item or a correct inflected form, "
                     "and preserves the English example meaning. Use Brazilian Portuguese for pt-BR. "
-                    "When fixing, preserve CEFR simplicity and do not change ids, levels, categories, or English unless English itself is invalid. "
+                    "For every warning or error, provide fixedText and fixedExample that can be written directly to the app data. "
+                    "Preserve CEFR simplicity and do not change ids, levels, categories, or English unless English itself is invalid. "
                     "Return only valid JSON."
                 )
             },
@@ -186,6 +188,12 @@ def check_batch(client: Any, model: str, batch: list[dict[str, Any]], languages:
     by_id = {str(result.get("id")): result for result in results}
     missing = [str(card.get("id")) for card in batch if str(card.get("id")) not in by_id]
     if missing:
+        if len(batch) == 1 and len(results) == 1:
+            expected_id = str(batch[0].get("id"))
+            returned_id = str(results[0].get("id"))
+            print(f"Warning: QA response returned id {returned_id!r}; using expected id {expected_id!r}.")
+            results[0]["id"] = expected_id
+            return {expected_id: results[0]}
         raise ValueError(f"QA response missing card ids: {', '.join(missing)}")
     return by_id
 
@@ -299,11 +307,9 @@ def with_summary(report: dict[str, Any]) -> dict[str, Any]:
 
 
 def get_output_path(args: argparse.Namespace) -> Path:
-    if args.in_place:
+    if args.in_place or args.output is None:
         return args.input
-    if args.output:
-        return args.output
-    return args.input.with_name(f"{args.input.stem}.fixed{args.input.suffix}")
+    return args.output
 
 
 def card_signature(card: dict[str, Any], languages: list[str]) -> str:

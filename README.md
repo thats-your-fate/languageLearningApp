@@ -43,6 +43,18 @@ python3 scripts/populate_vocabulary_from_wordlist.py --limit 50 --overwrite
 
 Omit `--limit` to process the whole CSV. The script writes a checkpoint at `scripts/.vocabulary_generation_checkpoint.json` so long runs can resume.
 
+## QA Vocabulary
+
+The script [scripts/qa_vocabulary_with_openai.py](/home/yaro/projects/language-flashcards/scripts/qa_vocabulary_with_openai.py) checks translations and examples with OpenAI. By default it fixes wrong or unnatural phrasing immediately in `src/data/vocabulary.json`, writing after each checked card.
+
+```sh
+python3 scripts/qa_vocabulary_with_openai.py --limit 20
+python3 scripts/qa_vocabulary_with_openai.py --check-only --limit 20
+python3 scripts/qa_vocabulary_with_openai.py --output src/data/vocabulary.fixed.json
+```
+
+The script writes a report at `scripts/vocabulary_qa_report.json` and a checkpoint at `scripts/.vocabulary_qa_checkpoint.json`.
+
 ## Structure
 
 - `src/data/vocabulary.json`: local Oxford-style starter vocabulary.

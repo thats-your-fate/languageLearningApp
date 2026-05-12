@@ -41,6 +41,7 @@
       "usesCleartextTraffic": true,
       "permissions": [
         "RECORD_AUDIO",
+        "POST_NOTIFICATIONS",
         "FOREGROUND_SERVICE",
         "WAKE_LOCK"
       ]

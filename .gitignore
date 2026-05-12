@@ -5,6 +5,9 @@ dist/
 build/
 out/
 
+.DS_Store
+._*
+
 .env
 *.env
 server/.env
