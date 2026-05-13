@@ -68,7 +68,7 @@ export default function MarketingPage() {
       >
         <img className="position-absolute top-0 start-0 w-100 h-100 object-fit-cover z-0" src="/assets/imgs/pages/fintech-app/page-home/home-section-1/img-bg.png" alt="" />
         <div className="container position-relative z-2 pt-8 text-lg-start text-center overflow-hidden">
-          <div className="row align-items-center">
+          <div className="row align-items-center g-5">
             <div className="col-lg-6 col-md-12">
               <span className="content-top btn-text text-white">LANGUAGE PRACTICE APP</span>
               <h1 className="title-stroke my-3 text-primary">
@@ -90,13 +90,13 @@ export default function MarketingPage() {
                 </Link>
               </div>
             </div>
-          </div>
-        </div>
-        <div className="container lighthouse-hero-stage position-absolute start-50 translate-middle-x bottom-0 h-100 d-none d-lg-block">
-          <div className="lighthouse-hero-screens">
-            <div className="lighthouse-hero-screen-grid">
-            <img className="lighthouse-hero-screen" src="/app-screens/screen-1.png" alt="Sentence practice preview" />
-            <img className="lighthouse-hero-screen" src="/app-screens/screen-2.png" alt="AI writing feedback preview" />
+            <div className="col-lg-6 d-none d-lg-block">
+              <div className="lighthouse-hero-screens">
+                <div className="lighthouse-hero-screen-grid">
+                  <img className="lighthouse-hero-screen" src="/app-screens/screen-1.png" alt="Sentence practice preview" />
+                  <img className="lighthouse-hero-screen" src="/app-screens/screen-2.png" alt="AI writing feedback preview" />
+                </div>
+              </div>
             </div>
           </div>
         </div>
