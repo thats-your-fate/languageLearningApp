@@ -92,12 +92,12 @@ export default function MarketingPage() {
             </div>
           </div>
         </div>
-        <div className="lighthouse-hero-screens d-none d-lg-block">
-          <div
-            className="lighthouse-hero-screen-grid"
-          >
+        <div className="container lighthouse-hero-stage position-absolute start-50 translate-middle-x bottom-0 h-100 d-none d-lg-block">
+          <div className="lighthouse-hero-screens">
+            <div className="lighthouse-hero-screen-grid">
             <img className="lighthouse-hero-screen" src="/app-screens/screen-1.png" alt="Sentence practice preview" />
             <img className="lighthouse-hero-screen" src="/app-screens/screen-2.png" alt="AI writing feedback preview" />
+            </div>
           </div>
         </div>
       </section>

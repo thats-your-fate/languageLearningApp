@@ -23,7 +23,6 @@ const sections = [
     body: [
       "We do not require an account for the core learning flow.",
       "We do not sell personal information.",
-      "We do not put an OpenAI API key inside the mobile app.",
     ],
   },
   {

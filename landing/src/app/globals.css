@@ -114,13 +114,17 @@ a {
   min-height: 820px;
 }
 
+.lighthouse-hero-stage {
+  pointer-events: none;
+  z-index: 1;
+}
+
 .lighthouse-hero-screens {
   bottom: 0;
   max-width: 620px;
   position: absolute;
-  right: clamp(20px, 4vw, 70px);
+  right: 0;
   width: min(44vw, 620px);
-  z-index: 1;
 }
 
 .lighthouse-hero-screen-grid {
@@ -330,7 +334,6 @@ a {
 
 @media (max-width: 1199.98px) {
   .lighthouse-hero-screens {
-    right: 12px;
     width: min(42vw, 500px);
   }
 
