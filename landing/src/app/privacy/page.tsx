@@ -59,8 +59,7 @@ const sections = [
   {
     title: "Contact",
     body: [
-      "For privacy questions, contact: support@example.com.",
-      "Replace this address with your real support email before submitting the app to the App Store.",
+      "For privacy questions, contact: y3591vy@gmail.com.",
     ],
   },
 ];
@@ -99,7 +98,7 @@ export default function PrivacyPage() {
         <div className="lighthouse-privacy-card">
           <p className="lighthouse-privacy-intro">
             This Privacy Policy explains how Lighthouse Language handles information when you use the mobile app and related AI practice services.
-            This page is written as an App Store-ready starting point. Replace the contact address and any deployment-specific details before publishing.
+            For support or privacy questions, email y3591vy@gmail.com.
           </p>
 
           <div className="lighthouse-privacy-sections">

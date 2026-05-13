@@ -119,11 +119,16 @@ function Footer() {
                 <Link href="/privacy">
                   <span className="btn-text text-white">Privacy</span>
                 </Link>
+                <Link href="/support">
+                  <span className="btn-text text-white">Support</span>
+                </Link>
               </div>
             </div>
             <div className="d-flex flex-column flex-lg-row gap-3 align-items-center py-4 justify-content-between">
-              <p className="text-white opacity-50 mb-0">Lighthouse Language. Practice words until they become sentences.</p>
-              <p className="text-white opacity-50 mb-0">Contact: support@example.com</p>
+              <p className="text-white opacity-50 mb-0">Lighthouse Language. Practice vocabulary, sentences, writing, and speech.</p>
+              <p className="text-white opacity-50 mb-0">
+                Contact: <a className="text-white" href="mailto:y3591vy@gmail.com">y3591vy@gmail.com</a>
+              </p>
             </div>
           </div>
         </div>

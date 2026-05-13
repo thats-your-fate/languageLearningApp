@@ -82,7 +82,7 @@ export function PracticeScreen({ navigation, route }: Props) {
 
   const card = cards[index];
   const remaining = cards.length;
-  const revealedAnswerColor = feedback && feedback.kind !== "fail" ? gradeStyles.easy : theme.text;
+  const revealedAnswerColor = feedback && feedback.kind !== "fail" ? theme.success : theme.text;
 
   useEffect(() => {
     if (!settings || cards.length === 0) return;

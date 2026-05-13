@@ -16,8 +16,11 @@ Useful scripts:
 ```sh
 npm run ios
 npm run android
+npm run start:android-usb
 npm run typecheck
 ```
+
+For a physical Android device connected by USB, use `npm run start:android-usb`. It reapplies `adb reverse` before starting Expo, so Expo Go/dev builds can connect through `exp://127.0.0.1:8081` even when the LAN URL is flaky.
 
 ## AI Backend
 

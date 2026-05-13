@@ -200,7 +200,7 @@ export function AiWritingPracticeScreen({ navigation, route }: Props) {
           {t("aiWriting.prompt", { language: LANGUAGE_LABELS[settings.targetLanguage] })}
         </Text>
         <Text style={[styles.word, { color: theme.text }]}>{card.targetText}</Text>
-        <View style={[styles.reference, { borderColor: theme.border }]}>
+        <View style={styles.reference}>
           <Text style={[styles.referenceLabel, { color: theme.textMuted }]}>
             {t("aiWriting.reference")}
           </Text>
@@ -342,9 +342,8 @@ const styles = StyleSheet.create({
   },
   reference: {
     borderRadius: 12,
-    borderWidth: 1,
     gap: 6,
-    padding: 12
+    paddingVertical: 12
   },
   referenceLabel: {
     fontSize: 13,

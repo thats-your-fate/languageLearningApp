@@ -15,6 +15,7 @@ const locales: Record<LanguageCode, string> = {
 let activeSound: Audio.Sound | null = null;
 const playbackSettleMs = 300;
 const prefetchChunkSize = 8;
+const ttsPlaybackCacheVersion = "gpt4o-mini-tts-2026-05-12";
 
 export type TtsPrefetchItem = {
   text: string;
@@ -64,6 +65,22 @@ export async function speakUntilDone(text: string, languageCode: LanguageCode): 
   }
 }
 
+export async function playSilenceUntilDone(ms: number): Promise<void> {
+  const url = getAiApiUrl(`/api/ai-practice/silence.wav?ms=${Math.round(ms)}`);
+  if (!url) {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+    return;
+  }
+
+  try {
+    await ensurePlaybackAudioMode();
+    await stop();
+    await playAudioUrlUntilDone(url, Math.max(1000, ms + 3000));
+  } catch {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+}
+
 export async function stop(): Promise<void> {
   try {
     Speech.stop();
@@ -98,9 +115,20 @@ export async function prefetchTtsAudio(items: TtsPrefetchItem[]): Promise<void> 
 }
 
 async function playOpenAiTts(text: string, languageCode: LanguageCode, waitUntilDone: boolean): Promise<void> {
-  const url = getAiApiUrl(`/api/ai-practice/tts?${new URLSearchParams({ text, language: languageCode }).toString()}`);
+  const url = getAiApiUrl(
+    `/api/ai-practice/tts?${new URLSearchParams({
+      text,
+      language: languageCode,
+      v: ttsPlaybackCacheVersion
+    }).toString()}`
+  );
   if (!url) {
     throw new Error("TTS backend URL is not configured.");
+  }
+
+  if (waitUntilDone) {
+    await playAudioUrlUntilDone(url, estimateSpeechTimeoutMs(text));
+    return;
   }
 
   const { sound } = await Audio.Sound.createAsync(
@@ -109,19 +137,24 @@ async function playOpenAiTts(text: string, languageCode: LanguageCode, waitUntil
   );
   activeSound = sound;
 
-  if (!waitUntilDone) {
-    sound.setOnPlaybackStatusUpdate((status) => {
-      if (status.isLoaded && status.didJustFinish) {
-        if (activeSound === sound) {
-          activeSound = null;
-        }
-        setTimeout(() => {
-          sound.unloadAsync();
-        }, playbackSettleMs);
+  sound.setOnPlaybackStatusUpdate((status) => {
+    if (status.isLoaded && status.didJustFinish) {
+      if (activeSound === sound) {
+        activeSound = null;
       }
-    });
-    return;
-  }
+      setTimeout(() => {
+        sound.unloadAsync();
+      }, playbackSettleMs);
+    }
+  });
+}
+
+async function playAudioUrlUntilDone(url: string, timeoutMs: number): Promise<void> {
+  const { sound } = await Audio.Sound.createAsync(
+    { uri: url },
+    { progressUpdateIntervalMillis: 250, shouldPlay: true }
+  );
+  activeSound = sound;
 
   await new Promise<void>((resolve, reject) => {
     let settled = false;
@@ -145,7 +178,7 @@ async function playOpenAiTts(text: string, languageCode: LanguageCode, waitUntil
       }
       sound.unloadAsync().finally(() => reject(new Error(message || "TTS playback failed.")));
     };
-    const timeout = setTimeout(finish, estimateSpeechTimeoutMs(text));
+    const timeout = setTimeout(finish, timeoutMs);
 
     sound.setOnPlaybackStatusUpdate((status) => {
       if (!status.isLoaded) {

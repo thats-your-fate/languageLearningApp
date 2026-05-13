@@ -7,17 +7,13 @@ import { Screen } from "../components/Screen";
 import { useI18n } from "../i18n";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import {
-  estimateDiscoveryPlaybackMs,
-  playDiscoveryCard,
+  discoveryPauseMs,
+  discoverySpokenItems,
   prefetchDiscoveryCardAudio,
-  subscribeDiscoveryPlaybackError,
-  stopDiscoveryPlayback,
-  subscribeDiscoveryPlaybackState,
-  subscribeDiscoveryQueueEnded
 } from "../services/discoveryPlaybackService";
 import { getAllProgress } from "../services/progressService";
 import { getSettings } from "../services/settingsService";
-import { speakUntilDone, stop } from "../services/ttsService";
+import { playSilenceUntilDone, speakUntilDone, stop } from "../services/ttsService";
 import { getPracticeCards, shuffleCards } from "../services/vocabularyService";
 import { useAppTheme } from "../theme";
 import { CardProgress } from "../types/progress";
@@ -28,16 +24,12 @@ type Props = NativeStackScreenProps<RootStackParamList, "DiscoveryPractice">;
 export function DiscoveryPracticeScreen({ navigation }: Props) {
   const theme = useAppTheme();
   const { t } = useI18n();
-  const timers = useRef<{ timer: ReturnType<typeof setTimeout>; resolve: () => void }[]>([]);
   const playbackRun = useRef(0);
-  const finishTrackPlayerCardRef = useRef<(() => void) | null>(null);
-  const trackPlayerWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stoppedRef = useRef(false);
-  const forceSpeechFallbackRef = useRef(false);
-  const usingTrackPlayerRef = useRef(false);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [cards, setCards] = useState<PracticeCardView[]>([]);
   const [index, setIndex] = useState(0);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
   const [playing, setPlaying] = useState(false);
   const card = cards[index];
 
@@ -59,120 +51,49 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
     });
 
     return () => {
-      clearTimers();
-      stopDiscoveryPlayback();
+      stopPlaybackRun();
       stop();
     };
   }, []);
 
   useEffect(() => {
-    let mounted = true;
-    let cleanupPlaybackError: (() => void) | undefined;
-    let cleanupQueueEnded: (() => void) | undefined;
-    let cleanupPlaybackState: (() => void) | undefined;
-
-    const finishTrackPlayerCard = () => {
-      if (!mounted || !usingTrackPlayerRef.current || stoppedRef.current) return;
-      if (trackPlayerWatchdogRef.current) {
-        clearTimeout(trackPlayerWatchdogRef.current);
-        trackPlayerWatchdogRef.current = null;
-      }
-      usingTrackPlayerRef.current = false;
-      void stopDiscoveryPlayback();
-      setPlaying(false);
-      setIndex((current) => (current + 1 >= cards.length ? 0 : current + 1));
-    };
-    finishTrackPlayerCardRef.current = finishTrackPlayerCard;
-
-    subscribeDiscoveryQueueEnded(finishTrackPlayerCard).then((subscription) => {
-      cleanupQueueEnded = () => subscription?.remove();
-    });
-
-    subscribeDiscoveryPlaybackState((isPlaying) => {
-      if (!mounted || !usingTrackPlayerRef.current || stoppedRef.current) return;
-      setPlaying(isPlaying);
-    }).then((subscription) => {
-      cleanupPlaybackState = () => subscription?.remove();
-    });
-
-    subscribeDiscoveryPlaybackError(() => {
-      if (!mounted || !usingTrackPlayerRef.current || stoppedRef.current) return;
-      usingTrackPlayerRef.current = false;
-      forceSpeechFallbackRef.current = true;
-      playSequence();
-    }).then((subscription) => {
-      cleanupPlaybackError = () => subscription?.remove();
-    });
-
-    return () => {
-      mounted = false;
-      finishTrackPlayerCardRef.current = null;
-      if (trackPlayerWatchdogRef.current) {
-        clearTimeout(trackPlayerWatchdogRef.current);
-        trackPlayerWatchdogRef.current = null;
-      }
-      cleanupPlaybackError?.();
-      cleanupQueueEnded?.();
-      cleanupPlaybackState?.();
-    };
-  }, [cards.length]);
-
-  useEffect(() => {
     if (settings && card && !stoppedRef.current) {
-      playSequence();
+      runPlaySequence();
     }
     // The card index intentionally drives autoplay when entering and moving next.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings, index, card?.id]);
 
-  function clearTimers() {
+  function stopPlaybackRun() {
     playbackRun.current += 1;
-    timers.current.forEach(({ timer, resolve }) => {
-      clearTimeout(timer);
-      resolve();
+  }
+
+  function runPlaySequence() {
+    void playSequence().catch((error) => {
+      setPlaying(false);
+      setPlaybackError(error instanceof Error ? error.message : "Audio playback failed.");
     });
-    timers.current = [];
-    if (trackPlayerWatchdogRef.current) {
-      clearTimeout(trackPlayerWatchdogRef.current);
-      trackPlayerWatchdogRef.current = null;
-    }
   }
 
   async function playSequence() {
     if (!settings || !card) return;
-    clearTimers();
+    stopPlaybackRun();
     const runId = playbackRun.current;
     stoppedRef.current = false;
     setPlaying(true);
+    setPlaybackError(null);
 
-    if (!forceSpeechFallbackRef.current) {
-      usingTrackPlayerRef.current = await playDiscoveryCard(card, settings);
-      if (runId !== playbackRun.current || stoppedRef.current) return;
-      if (usingTrackPlayerRef.current) {
-        trackPlayerWatchdogRef.current = setTimeout(() => {
-          finishTrackPlayerCardRef.current?.();
-        }, estimateDiscoveryPlaybackMs(card));
-        const nextCard = cards[index + 1] ?? cards[0];
-        if (nextCard && nextCard.id !== card.id) {
-          prefetchDiscoveryCardAudio(nextCard, settings);
-        }
-        return;
-      }
+    void prefetchDiscoveryCardAudio(card, settings);
+    const nextCard = cards[index + 1] ?? cards[0];
+    if (nextCard && nextCard.id !== card.id) {
+      void prefetchDiscoveryCardAudio(nextCard, settings);
     }
-    forceSpeechFallbackRef.current = false;
 
-    const sequence = [
-      { text: card.targetText, language: settings.targetLanguage },
-      { text: card.sourceText, language: settings.sourceLanguage },
-      { text: card.targetExample, language: settings.targetLanguage },
-      { text: card.sourceExample, language: settings.sourceLanguage }
-    ];
-
-    for (const item of sequence) {
+    for (const item of discoverySpokenItems(card, settings)) {
       if (runId !== playbackRun.current || stoppedRef.current) return;
       await speakUntilDone(item.text, item.language);
       if (runId !== playbackRun.current || stoppedRef.current) return;
-      await wait(1500, runId);
+      await playSilenceUntilDone(discoveryPauseMs);
     }
 
     if (runId !== playbackRun.current || stoppedRef.current) return;
@@ -180,30 +101,17 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
     setIndex((current) => (current + 1 >= cards.length ? 0 : current + 1));
   }
 
-  function wait(ms: number, runId: number): Promise<void> {
-    return new Promise((resolve) => {
-      const timer = setTimeout(resolve, ms);
-      timers.current.push({ timer, resolve });
-      if (runId !== playbackRun.current || stoppedRef.current) {
-        clearTimeout(timer);
-        resolve();
-      }
-    });
-  }
-
   async function handlePlaybackPress() {
     if (playing) {
       stoppedRef.current = true;
-      usingTrackPlayerRef.current = false;
       setPlaying(false);
-      clearTimers();
-      await stopDiscoveryPlayback();
+      stopPlaybackRun();
       await stop();
       return;
     }
 
     stoppedRef.current = false;
-    playSequence();
+    runPlaySequence();
   }
 
   function isKnownProgress(progress?: CardProgress) {
@@ -237,6 +145,7 @@ export function DiscoveryPracticeScreen({ navigation }: Props) {
         <Text style={[styles.native, { color: theme.textMuted }]}>{card.sourceText}</Text>
         <Text style={[styles.nativeExample, { color: theme.textMuted }]}>{card.sourceExample}</Text>
       </View>
+      {playbackError ? <Text style={[styles.errorText, { color: theme.danger }]}>{playbackError}</Text> : null}
       <AppButton title={playing ? t("common.stop") : t("discovery.playSequence")} onPress={handlePlaybackPress} />
     </Screen>
   );
@@ -256,6 +165,11 @@ const styles = StyleSheet.create({
   example: {
     fontSize: 18,
     lineHeight: 25
+  },
+  errorText: {
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 20
   },
   label: {
     fontSize: 12,

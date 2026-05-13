@@ -88,16 +88,6 @@ export default function MarketingPage() {
                     <span> see how it works </span>
                   <i className="fa-solid fa-arrow-right-long text-primary" />
                 </Link>
-                <div className="d-flex align-items-center ps-md-6 pt-md-0 pt-5">
-                  <div className="d-flex align-items-center gap-1">
-                    <span className="icon-shape rounded-circle bg-dark text-white d-inline-flex align-items-center justify-content-center">EN</span>
-                    <span className="icon-shape rounded-circle bg-dark text-white d-inline-flex align-items-center justify-content-center">PT</span>
-                  </div>
-                  <div className="ms-3">
-                    <h6 className="mb-0 text-start">6</h6>
-                    <p className="mb-0 text-primary">language pairs</p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

@@ -249,6 +249,10 @@ a {
   background: #101827 !important;
 }
 
+.lighthouse-faq .lighthouse-faq-item {
+  padding-bottom: 4px;
+}
+
 .lighthouse-faq a,
 .lighthouse-faq h6,
 .lighthouse-faq h6 span {

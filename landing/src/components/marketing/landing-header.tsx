@@ -8,6 +8,7 @@ const navItems = [
   { href: "/templates", label: "Screens" },
   { href: "/pricing", label: "App" },
   { href: "/privacy", label: "Privacy" },
+  { href: "/support", label: "Support" },
 ];
 
 function Logo() {

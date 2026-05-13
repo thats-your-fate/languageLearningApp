@@ -9,6 +9,7 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
+    "start:android-usb": "bash scripts/start-expo-android-usb.sh",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "postinstall": "patch-package",
@@ -31,8 +32,7 @@
     "react": "19.1.0",
     "react-native": "0.81.5",
     "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0",
-    "react-native-track-player": "^4.1.2"
+    "react-native-screens": "~4.16.0"
   },
   "devDependencies": {
     "@types/react": "~19.1.10",

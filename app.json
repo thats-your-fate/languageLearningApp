@@ -4,6 +4,7 @@
     "slug": "lighthouse",
     "version": "1.0.0",
     "orientation": "portrait",
+    "newArchEnabled": false,
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {
@@ -29,7 +30,8 @@
         ],
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true
-        }
+        },
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -38,7 +40,6 @@
         "backgroundColor": "#ff8a22"
       },
       "package": "com.astradev.lighthouse",
-      "usesCleartextTraffic": true,
       "permissions": [
         "RECORD_AUDIO",
         "POST_NOTIFICATIONS",
@@ -63,11 +64,19 @@
       [
         "expo-build-properties",
         {
+          "android": {
+            "usesCleartextTraffic": true
+          },
           "ios": {
             "buildReactNativeFromSource": true
           }
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "36dd7b9a-f9c3-4c84-ae35-802d975fe1cf"
+      }
+    }
   }
 }
