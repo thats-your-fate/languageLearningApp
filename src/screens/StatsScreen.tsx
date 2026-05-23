@@ -24,7 +24,7 @@ const gradeColors: Record<DifficultyGrade, string> = {
 
 export function StatsScreen({ navigation }: Props) {
   const theme = useAppTheme();
-  const { t } = useI18n();
+  const { gradeName, t } = useI18n();
   const [progress, setProgress] = useState<Record<string, CardProgress>>({});
   const [settings, setSettings] = useState<AppSettings | null>(null);
 
@@ -88,7 +88,7 @@ export function StatsScreen({ navigation }: Props) {
               onPress={() => navigation.navigate("Practice", { grade })}
               style={[styles.gradeCard, { backgroundColor: gradeColors[grade] }]}
             >
-              <Text style={styles.gradeLabel}>{capitalize(grade)}</Text>
+              <Text style={styles.gradeLabel}>{gradeName(grade)}</Text>
               <Text style={styles.gradeValue}>{gradeCounts[grade]}</Text>
             </Pressable>
           ))}
@@ -142,10 +142,6 @@ function MetricCard({
   }
 
   return <View style={[styles.metric, { backgroundColor: theme.surface, borderColor: theme.border }]}>{content}</View>;
-}
-
-function capitalize(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 const styles = StyleSheet.create({

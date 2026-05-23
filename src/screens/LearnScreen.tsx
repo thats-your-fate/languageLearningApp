@@ -12,7 +12,7 @@ import { getSettings } from "../services/settingsService";
 import { getPracticeCards } from "../services/vocabularyService";
 import { useAppTheme } from "../theme";
 import { CardProgress } from "../types/progress";
-import { AppSettings, LANGUAGE_LABELS } from "../types/vocabulary";
+import { AppSettings } from "../types/vocabulary";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Learn">;
 
@@ -35,7 +35,7 @@ const categoryIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
 
 export function LearnScreen({ navigation }: Props) {
   const theme = useAppTheme();
-  const { t } = useI18n();
+  const { categoryName, languageName, t } = useI18n();
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [progress, setProgress] = useState<Record<string, CardProgress>>({});
 
@@ -93,7 +93,7 @@ export function LearnScreen({ navigation }: Props) {
       <View style={styles.hero}>
         <Text style={[styles.title, { color: theme.text }]}>{t("learn.chooseCategory")}</Text>
         <Text style={[styles.subtitle, { color: theme.textMuted }]}>
-          {settings?.activeLevel ?? "All"} · {settings ? LANGUAGE_LABELS[settings.targetLanguage] : "Learner language"}
+          {settings?.activeLevel ?? "All"} · {settings ? languageName(settings.targetLanguage) : "Learner language"}
         </Text>
       </View>
       <View style={styles.grid}>
@@ -117,7 +117,7 @@ export function LearnScreen({ navigation }: Props) {
               <Ionicons name={categoryIcons[item.category] ?? "albums-outline"} size={25} color={theme.primary} />
             </View>
             <Text numberOfLines={2} style={[styles.tileTitle, { color: theme.text }]}>
-              {item.category}
+              {categoryName(item.category)}
             </Text>
             <Text style={[styles.tileMeta, { color: theme.textMuted }]}>
               {t("learn.leftKnown", { left: Math.max(item.count - item.known, 0), known: item.known })}

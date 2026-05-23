@@ -1,5 +1,4 @@
 import * as NativeSplashScreen from "expo-splash-screen";
-import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import { ImageBackground, StyleSheet, View } from "react-native";
 import { getSplashDurationMs, getSplashImage } from "./src/config/splashConfig";
@@ -58,10 +57,7 @@ export default function App() {
   }
 
   return (
-    <>
-      <StatusBar style="auto" />
-      <AppNavigator />
-    </>
+    <AppNavigator />
   );
 }
 

@@ -31,7 +31,7 @@ const audioPrefetchWindow = 8;
 
 export function PracticeScreen({ navigation, route }: Props) {
   const theme = useAppTheme();
-  const { t } = useI18n();
+  const { gradeName, t } = useI18n();
   const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prefetchedAudio = useRef<Set<string>>(new Set());
   const [settings, setSettings] = useState<AppSettings | null>(null);
@@ -279,7 +279,7 @@ export function PracticeScreen({ navigation, route }: Props) {
               onPress={() => grade(item)}
               style={[styles.gradeButton, { backgroundColor: gradeStyles[item] }]}
             >
-              <Text style={styles.gradeText}>{capitalize(item)}</Text>
+              <Text style={styles.gradeText}>{gradeName(item)}</Text>
             </Pressable>
           ))}
           <View style={styles.practiceShortcuts}>
@@ -333,10 +333,6 @@ function SoundButton({ onPress }: { onPress: () => void }) {
       <Ionicons name="volume-high" size={25} color={theme.text} />
     </Pressable>
   );
-}
-
-function capitalize(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 const styles = StyleSheet.create({

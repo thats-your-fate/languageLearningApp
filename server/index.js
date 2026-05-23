@@ -1,3 +1,5 @@
+require("dotenv").config({ path: process.env.EXTERNAL_ENV_FILE || process.env.LANGUAGE_FLASHCARDS_SERVER_ENV_FILE || "/var/www/vhosts/language-flashcards/private/.env" });
+require("dotenv").config({ path: "/home/yaro/project-env/language-flashcards-server.env" });
 require("dotenv").config({ path: require("path").join(__dirname, ".env") });
 
 const crypto = require("crypto");

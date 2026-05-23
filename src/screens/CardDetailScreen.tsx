@@ -18,7 +18,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "CardDetail">;
 
 export function CardDetailScreen({ navigation, route }: Props) {
   const theme = useAppTheme();
-  const { t } = useI18n();
+  const { categoryName, t } = useI18n();
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const rawCard = getCardById(route.params.cardId);
 
@@ -62,8 +62,8 @@ export function CardDetailScreen({ navigation, route }: Props) {
         <Text style={[styles.source, { color: theme.textMuted }]}>{card.sourceText}</Text>
         <Text style={[styles.sectionLabel, { color: theme.textMuted }]}>{t("card.category")}</Text>
         <Text style={[styles.meta, { color: theme.textMuted }]}>
-          {card.category}
-          {rawCard.subcategory ? ` · ${rawCard.subcategory}` : ""}
+          {categoryName(card.category)}
+          {rawCard.subcategory ? ` · ${categoryName(rawCard.subcategory)}` : ""}
         </Text>
       </View>
 

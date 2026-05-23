@@ -8,12 +8,12 @@
   },
   "main": "index.js",
   "scripts": {
-    "start": "expo start",
-    "start:android-usb": "bash scripts/start-expo-android-usb.sh",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
+    "start": "node scripts/with-env.cjs -- \"expo start\"",
+    "start:android-usb": "node scripts/with-env.cjs -- \"bash scripts/start-expo-android-usb.sh\"",
+    "android": "node scripts/with-env.cjs -- \"expo run:android\"",
+    "ios": "node scripts/with-env.cjs -- \"expo run:ios\"",
     "postinstall": "patch-package",
-    "web": "expo start --web",
+    "web": "node scripts/with-env.cjs -- \"expo start --web\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

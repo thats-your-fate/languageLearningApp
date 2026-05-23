@@ -35,7 +35,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_VOCABULARY = PROJECT_ROOT / "src" / "data" / "vocabulary.json"
 DEFAULT_CACHE_DIR = PROJECT_ROOT / "server" / ".tts-cache"
 DEFAULT_CHECKPOINT = PROJECT_ROOT / "scripts" / ".tts_cache_generation_checkpoint.json"
-ENV_PATH = PROJECT_ROOT / "server" / ".env"
+ENV_PATH = Path(os.environ.get("EXTERNAL_ENV_FILE", os.environ.get("LANGUAGE_FLASHCARDS_SERVER_ENV_FILE", "/var/www/vhosts/language-flashcards/private/.env")))
+LOCAL_ENV_PATH = Path("/home/yaro/project-env/language-flashcards-server.env")
 DEFAULT_LANGUAGES = ["en", "de", "pt-BR", "it", "es", "fr"]
 DEFAULT_FIELDS = ["text", "example"]
 
@@ -50,6 +51,7 @@ class TtsItem:
 
 def main() -> int:
     load_env_file(ENV_PATH)
+    load_env_file(LOCAL_ENV_PATH)
 
     parser = argparse.ArgumentParser(description="Generate OpenAI TTS cache files for vocabulary audio.")
     parser.add_argument("--input", type=Path, default=DEFAULT_VOCABULARY)

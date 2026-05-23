@@ -13,13 +13,13 @@ import { speak } from "../services/ttsService";
 import { getPracticeCards } from "../services/vocabularyService";
 import { useAppTheme } from "../theme";
 import { CardProgress } from "../types/progress";
-import { AppSettings, LANGUAGE_LABELS, PracticeCardView } from "../types/vocabulary";
+import { AppSettings, PracticeCardView } from "../types/vocabulary";
 
 type Props = NativeStackScreenProps<RootStackParamList, "WordList">;
 
 export function WordListScreen({ navigation, route }: Props) {
   const theme = useAppTheme();
-  const { t } = useI18n();
+  const { categoryName, languageName, t } = useI18n();
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [progress, setProgress] = useState<Record<string, CardProgress>>({});
 
@@ -47,9 +47,9 @@ export function WordListScreen({ navigation, route }: Props) {
   return (
     <Screen title={t("common.wordList")} backLabel={t("common.learn")} activeTab="Learn">
       <View style={styles.hero}>
-        <Text style={[styles.title, { color: theme.text }]}>{category ?? "Word list"}</Text>
+        <Text style={[styles.title, { color: theme.text }]}>{category ? categoryName(category) : t("common.wordList")}</Text>
         <Text style={[styles.count, { color: theme.textMuted }]}>
-          {settings?.activeLevel ?? "All"} · {settings ? LANGUAGE_LABELS[settings.targetLanguage] : "Learner language"} ·{" "}
+          {settings?.activeLevel ?? "All"} · {settings ? languageName(settings.targetLanguage) : "Learner language"} ·{" "}
           {t("wordList.counts", { left: remainingInList, known: knownInList, total: cards.length })}
         </Text>
         <Text style={[styles.helper, { color: theme.textMuted }]}>

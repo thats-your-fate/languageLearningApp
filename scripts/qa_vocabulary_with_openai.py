@@ -39,7 +39,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_INPUT = PROJECT_ROOT / "src" / "data" / "vocabulary.json"
 DEFAULT_REPORT = PROJECT_ROOT / "scripts" / "vocabulary_qa_report.json"
 DEFAULT_CHECKPOINT = PROJECT_ROOT / "scripts" / ".vocabulary_qa_checkpoint.json"
-ENV_PATH = PROJECT_ROOT / "server" / ".env"
+ENV_PATH = Path(os.environ.get("EXTERNAL_ENV_FILE", os.environ.get("LANGUAGE_FLASHCARDS_SERVER_ENV_FILE", "/var/www/vhosts/language-flashcards/private/.env")))
+LOCAL_ENV_PATH = Path("/home/yaro/project-env/language-flashcards-server.env")
 DEFAULT_LANGUAGES = ["en", "de", "pt-BR", "it", "es", "fr"]
 
 
@@ -65,6 +66,7 @@ def main() -> int:
     args = parser.parse_args()
 
     load_env_file(ENV_PATH)
+    load_env_file(LOCAL_ENV_PATH)
     ensure_openai_available()
     from openai import OpenAI
 

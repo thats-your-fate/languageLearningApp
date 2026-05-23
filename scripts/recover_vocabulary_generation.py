@@ -26,7 +26,8 @@ import populate_vocabulary_from_wordlist as generator
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-ENV_PATH = PROJECT_ROOT / "server" / ".env"
+ENV_PATH = Path(os.environ.get("EXTERNAL_ENV_FILE", os.environ.get("LANGUAGE_FLASHCARDS_SERVER_ENV_FILE", "/var/www/vhosts/language-flashcards/private/.env")))
+LOCAL_ENV_PATH = Path("/home/yaro/project-env/language-flashcards-server.env")
 
 
 def main() -> int:
@@ -38,6 +39,7 @@ def main() -> int:
     args = parser.parse_args()
 
     load_env_file(ENV_PATH)
+    load_env_file(LOCAL_ENV_PATH)
     rows = generator.read_word_rows(generator.DEFAULT_INPUT)
     checkpoint = generator.read_checkpoint(generator.DEFAULT_CHECKPOINT)
     first_missing_index = next(

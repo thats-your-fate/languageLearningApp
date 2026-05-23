@@ -2,7 +2,7 @@
   "expo": {
     "name": "Lighthouse",
     "slug": "lighthouse",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "newArchEnabled": false,
     "icon": "./assets/icon.png",
@@ -20,7 +20,7 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "icon": "./assets/icon.png",
       "bundleIdentifier": "com.astradev.lighthouse",
       "infoPlist": {

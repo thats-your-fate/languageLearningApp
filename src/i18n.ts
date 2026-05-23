@@ -1,6 +1,7 @@
 import { createContext, createElement, ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { NativeModules, Platform } from "react-native";
 import { getSettings } from "./services/settingsService";
+import { DifficultyGrade } from "./types/progress";
 import { LanguageCode } from "./types/vocabulary";
 
 type TranslationKey =
@@ -143,11 +144,15 @@ type Dictionary = Record<TranslationKey, string>;
 type I18nContextValue = {
   language: LanguageCode;
   setLanguage: (language: LanguageCode) => void;
+  categoryName: (category: string) => string;
+  gradeName: (grade: DifficultyGrade) => string;
   languageName: (language: LanguageCode) => string;
   t: (key: TranslationKey, variables?: Variables) => string;
 };
 
-const dictionaries: Record<"en" | "de" | "pt-BR" | "it" | "fr", Dictionary> = {
+type DictionaryLanguage = "en" | "de" | "pt-BR" | "it" | "es" | "fr";
+
+const dictionaries: Record<DictionaryLanguage, Dictionary> = {
   en: {
     "app.name": "Lighthouse",
     "common.loading": "Loading...",
@@ -418,6 +423,7 @@ const dictionaries: Record<"en" | "de" | "pt-BR" | "it" | "fr", Dictionary> = {
   },
   "pt-BR": {} as Dictionary,
   it: {} as Dictionary,
+  es: {} as Dictionary,
   fr: {} as Dictionary
 };
 
@@ -689,6 +695,140 @@ dictionaries.it = {
   "result.exampleSentence": "Frase di esempio",
   "home.subtitle": "Pratica le parole, poi usale nelle frasi."
 };
+dictionaries.es = {
+  ...dictionaries.en,
+  "common.loading": "Cargando...",
+  "common.back": "Atrás",
+  "common.next": "Siguiente",
+  "common.save": "Guardar",
+  "common.saved": "Guardado",
+  "common.pass": "Saltar",
+  "common.check": "Comprobar",
+  "common.stop": "Parar",
+  "common.listen": "Escuchar",
+  "common.tryAgain": "Intentar de nuevo",
+  "common.practice": "Practicar",
+  "common.settings": "Ajustes",
+  "common.stats": "Estadísticas",
+  "common.learn": "Aprender",
+  "common.wordList": "Lista de palabras",
+  "common.practiceHub": "Centro de práctica",
+  "common.aiWriting": "Escritura con IA",
+  "common.aiSpeaking": "Habla con IA",
+  "home.subtitle": "Practica palabras y luego úsalas en frases.",
+  "home.startPractice": "Empezar práctica",
+  "learn.chooseCategory": "Elige una categoría",
+  "learn.openList": "Abrir lista",
+  "learn.leftKnown": "{left} restantes · {known} conocidas",
+  "wordList.practiceThisList": "Practicar esta lista",
+  "wordList.practiceSentences": "Practicar frases",
+  "wordList.counts": "{left} restantes · {known} conocidas · {total} total",
+  "wordList.knownHelper": "Las tarjetas Good y Easy cuentan como conocidas.",
+  "settings.title": "Configuración de idioma",
+  "settings.subtitle": "Actualiza tu idioma nativo y el idioma que estudias.",
+  "settings.nativeLanguage": "Idioma nativo",
+  "settings.learningLanguage": "Idioma de estudio",
+  "settings.learningLevel": "Nivel",
+  "settings.appearance": "Apariencia",
+  "settings.system": "Sistema",
+  "settings.light": "Claro",
+  "settings.dark": "Oscuro",
+  "settings.savedMessage": "Configuración actualizada.",
+  "onboarding.welcome": "Bienvenido",
+  "onboarding.iSpeak": "Hablo",
+  "onboarding.iWantToLearn": "Quiero aprender",
+  "onboarding.myLevel": "Mi nivel",
+  "onboarding.sourceSubtitle": "Elige tu idioma original.",
+  "onboarding.targetSubtitle": "Elige el idioma que quieres aprender.",
+  "onboarding.levelSubtitle": "Elige un nivel disponible.",
+  "onboarding.startLearning": "Empezar",
+  "practice.loadingCards": "Cargando tarjetas de práctica...",
+  "practice.noCards": "SIN TARJETAS",
+  "practice.noCardsBody": "Todavía no hay tarjetas en esta lista de práctica.",
+  "practice.remainingCompleted": "Restantes: {remaining} | Completadas: {completed} / {total}",
+  "practice.selectLevel": "Seleccionar nivel",
+  "practice.translate": "TRADUCIR",
+  "practice.answer": "RESPUESTA",
+  "practice.typeAnswer": "Escribe la respuesta en el idioma de estudio",
+  "practice.reveal": "Mostrar",
+  "practice.gradeInfo": "Again y Hard se repiten en esta sesión. Good y Easy pasan a palabras conocidas.",
+  "practice.writingPractice": "Práctica de escritura",
+  "practice.speakingPractice": "Práctica oral",
+  "practiceHub.title": "Práctica",
+  "practiceHub.subtitle": "Elige un ejercicio enfocado.",
+  "practiceHub.discoveryTitle": "Modo descubrimiento",
+  "practiceHub.discoveryDescription": "Reproduce automáticamente palabras nuevas y ejemplos.",
+  "practiceHub.flashcardsTitle": "Practicar palabras conocidas",
+  "practiceHub.flashcardsDescription": "Repasa tarjetas con repetición espaciada.",
+  "practiceHub.writingTitle": "Practicar escritura con IA",
+  "practiceHub.writingDescription": "Escribe tu propia frase y recibe comentarios.",
+  "practiceHub.speakingTitle": "Practicar habla con IA",
+  "practiceHub.speakingDescription": "Di una frase y revisa la transcripción.",
+  "sentence.title": "Práctica de frases",
+  "sentence.loading": "Cargando práctica de frases...",
+  "sentence.noKnownTitle": "Aún no hay frases conocidas",
+  "sentence.noKnownBody": "Marca primero algunas tarjetas como Good o Easy. La práctica de frases usa solo palabras conocidas.",
+  "sentence.practiceCards": "Practicar tarjetas",
+  "sentence.knownRemaining": "Palabras conocidas {mode} · Restantes: {remaining}",
+  "sentence.chooseMissing": "Elige la palabra que falta",
+  "sentence.fillBlank": "Rellena el espacio",
+  "sentence.typeMissing": "Escribe la palabra que falta",
+  "sentence.nativeTranslation": "Traducción: {text}",
+  "sentence.correctAnswer": "Respuesta correcta: {answer}",
+  "stats.cardsToday": "Tarjetas practicadas hoy",
+  "stats.knownCards": "Tarjetas conocidas",
+  "stats.knownHelper": "Toca para practicar palabras conocidas",
+  "stats.byGrade": "Por valoración",
+  "stats.gradeHelper": "Toca un grupo para practicar esas tarjetas otra vez",
+  "stats.weakCards": "Tarjetas débiles",
+  "stats.weakHelper": "Toca para practicar tarjetas débiles",
+  "discovery.title": "Descubrimiento",
+  "discovery.loading": "Cargando tarjetas de descubrimiento...",
+  "discovery.cardProgress": "Tarjeta {current} / {total}",
+  "discovery.learnerLanguage": "Idioma de estudio",
+  "discovery.nativeTranslation": "Traducción",
+  "discovery.playing": "Reproduciendo...",
+  "discovery.playSequence": "Reproducir secuencia",
+  "discovery.pauseAutoplay": "Pausar reproducción automática",
+  "discovery.resumeAutoplay": "Reanudar reproducción automática",
+  "discovery.nextCard": "Siguiente tarjeta",
+  "aiWriting.title": "Práctica de escritura",
+  "aiWriting.loading": "Cargando práctica de escritura con IA...",
+  "aiWriting.noKnown": "Marca primero algunas tarjetas como Good o Easy. La escritura con IA usa solo palabras conocidas.",
+  "aiWriting.prompt": "Escribe una frase en {language} con la palabra dada:",
+  "aiWriting.reference": "Ejemplo de referencia (tu idioma, opcional)",
+  "aiWriting.placeholder": "Escribe tu frase",
+  "aiWriting.feedback": "Comentarios de IA",
+  "aiWriting.offlineFeedback": "Comentarios sin conexión",
+  "aiWriting.explainInMyLanguage": "Explicar en mi idioma",
+  "aiWriting.explanation": "Explicación",
+  "aiWriting.exampleSentence": "Frase de ejemplo",
+  "aiWriting.practiceSpeaking": "Practicar esta frase hablando",
+  "aiSpeaking.title": "Habla con IA",
+  "aiSpeaking.loading": "Cargando práctica oral con IA...",
+  "aiSpeaking.speakSentence": "Di esta frase",
+  "aiSpeaking.startRecording": "Iniciar grabación",
+  "aiSpeaking.submitRecording": "Enviar grabación",
+  "aiSpeaking.transcriptPlaceholder": "Transcripción",
+  "aiSpeaking.submitTranscript": "Enviar transcripción",
+  "aiSpeaking.playCorrect": "Reproducir frase correcta",
+  "card.details": "Detalles de la palabra",
+  "card.notFound": "Tarjeta no encontrada.",
+  "card.learningWord": "Palabra de estudio",
+  "card.nativeMeaning": "Significado en tu idioma",
+  "card.category": "Categoría",
+  "card.examples": "Ejemplos",
+  "card.meaning": "Significado",
+  "card.sourceExample": "Ejemplo en idioma original",
+  "card.targetExample": "Ejemplo en idioma de estudio",
+  "card.practiceWriting": "Practicar escritura",
+  "card.practiceSpeaking": "Practicar habla",
+  "card.regularPractice": "Práctica normal",
+  "card.playPronunciation": "Reproducir pronunciación",
+  "flashcard.playPronunciation": "Reproducir pronunciación",
+  "flashcard.revealAnswer": "Mostrar respuesta",
+  "result.exampleSentence": "Frase de ejemplo"
+};
 dictionaries.fr = {
   ...dictionaries.en,
   "common.loading": "Chargement...",
@@ -826,12 +966,117 @@ dictionaries.fr = {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-const languageNames: Record<"en" | "de" | "pt-BR" | "it" | "fr", Record<LanguageCode, string>> = {
+const languageNames: Record<DictionaryLanguage, Record<LanguageCode, string>> = {
   en: { en: "English", de: "German", "pt-BR": "Portuguese (Brazil)", it: "Italian", es: "Spanish", fr: "French" },
   de: { en: "Englisch", de: "Deutsch", "pt-BR": "Portugiesisch (Brasilien)", it: "Italienisch", es: "Spanisch", fr: "Französisch" },
   "pt-BR": { en: "Inglês", de: "Alemão", "pt-BR": "Português (Brasil)", it: "Italiano", es: "Espanhol", fr: "Francês" },
   it: { en: "Inglese", de: "Tedesco", "pt-BR": "Portoghese (Brasile)", it: "Italiano", es: "Spagnolo", fr: "Francese" },
+  es: { en: "Inglés", de: "Alemán", "pt-BR": "Portugués (Brasil)", it: "Italiano", es: "Español", fr: "Francés" },
   fr: { en: "Anglais", de: "Allemand", "pt-BR": "Portugais (Brésil)", it: "Italien", es: "Espagnol", fr: "Français" }
+};
+
+const gradeNames: Record<DictionaryLanguage, Record<DifficultyGrade, string>> = {
+  en: { again: "Again", hard: "Hard", good: "Good", easy: "Easy" },
+  de: { again: "Nochmal", hard: "Schwer", good: "Gut", easy: "Einfach" },
+  "pt-BR": { again: "De novo", hard: "Difícil", good: "Bom", easy: "Fácil" },
+  it: { again: "Di nuovo", hard: "Difficile", good: "Bene", easy: "Facile" },
+  es: { again: "De nuevo", hard: "Difícil", good: "Bien", easy: "Fácil" },
+  fr: { again: "Encore", hard: "Difficile", good: "Bien", easy: "Facile" }
+};
+
+const categoryNames: Record<string, Record<DictionaryLanguage, string>> = {
+  ability: { en: "Ability", de: "Fähigkeit", "pt-BR": "Habilidade", it: "Abilità", es: "Habilidad", fr: "Capacité" },
+  abstract: { en: "Abstract", de: "Abstrakt", "pt-BR": "Abstrato", it: "Astratto", es: "Abstracto", fr: "Abstrait" },
+  action: { en: "Action", de: "Handlung", "pt-BR": "Ação", it: "Azione", es: "Acción", fr: "Action" },
+  actions: { en: "Actions", de: "Handlungen", "pt-BR": "Ações", it: "Azioni", es: "Acciones", fr: "Actions" },
+  activities: { en: "Activities", de: "Aktivitäten", "pt-BR": "Atividades", it: "Attività", es: "Actividades", fr: "Activités" },
+  adjectives: { en: "Adjectives", de: "Adjektive", "pt-BR": "Adjetivos", it: "Aggettivi", es: "Adjetivos", fr: "Adjectifs" },
+  adverbs: { en: "Adverbs", de: "Adverbien", "pt-BR": "Advérbios", it: "Avverbi", es: "Adverbios", fr: "Adverbes" },
+  animals: { en: "Animals", de: "Tiere", "pt-BR": "Animais", it: "Animali", es: "Animales", fr: "Animaux" },
+  appearance: { en: "Appearance", de: "Aussehen", "pt-BR": "Aparência", it: "Aspetto", es: "Apariencia", fr: "Apparence" },
+  art: { en: "Art", de: "Kunst", "pt-BR": "Arte", it: "Arte", es: "Arte", fr: "Art" },
+  basic: { en: "Basic", de: "Grundlagen", "pt-BR": "Básico", it: "Base", es: "Básico", fr: "Base" },
+  body: { en: "Body", de: "Körper", "pt-BR": "Corpo", it: "Corpo", es: "Cuerpo", fr: "Corps" },
+  business: { en: "Business", de: "Geschäft", "pt-BR": "Negócios", it: "Affari", es: "Negocios", fr: "Affaires" },
+  clothing: { en: "Clothing", de: "Kleidung", "pt-BR": "Roupas", it: "Abbigliamento", es: "Ropa", fr: "Vêtements" },
+  colors: { en: "Colors", de: "Farben", "pt-BR": "Cores", it: "Colori", es: "Colores", fr: "Couleurs" },
+  communication: { en: "Communication", de: "Kommunikation", "pt-BR": "Comunicação", it: "Comunicazione", es: "Comunicación", fr: "Communication" },
+  comparisons: { en: "Comparisons", de: "Vergleiche", "pt-BR": "Comparações", it: "Confronti", es: "Comparaciones", fr: "Comparaisons" },
+  condition: { en: "Condition", de: "Zustand", "pt-BR": "Condição", it: "Condizione", es: "Condición", fr: "Condition" },
+  conjunctions: { en: "Conjunctions", de: "Konjunktionen", "pt-BR": "Conjunções", it: "Congiunzioni", es: "Conjunciones", fr: "Conjonctions" },
+  culture: { en: "Culture", de: "Kultur", "pt-BR": "Cultura", it: "Cultura", es: "Cultura", fr: "Culture" },
+  "daily life": { en: "Daily life", de: "Alltag", "pt-BR": "Vida diária", it: "Vita quotidiana", es: "Vida diaria", fr: "Vie quotidienne" },
+  descriptions: { en: "Descriptions", de: "Beschreibungen", "pt-BR": "Descrições", it: "Descrizioni", es: "Descripciones", fr: "Descriptions" },
+  descriptive: { en: "Descriptive", de: "Beschreibend", "pt-BR": "Descritivo", it: "Descrittivo", es: "Descriptivo", fr: "Descriptif" },
+  determiners: { en: "Determiners", de: "Begleiter", "pt-BR": "Determinantes", it: "Determinanti", es: "Determinantes", fr: "Déterminants" },
+  direction: { en: "Direction", de: "Richtung", "pt-BR": "Direção", it: "Direzione", es: "Dirección", fr: "Direction" },
+  economics: { en: "Economics", de: "Wirtschaft", "pt-BR": "Economia", it: "Economia", es: "Economía", fr: "Économie" },
+  education: { en: "Education", de: "Bildung", "pt-BR": "Educação", it: "Istruzione", es: "Educación", fr: "Éducation" },
+  emotions: { en: "Emotions", de: "Emotionen", "pt-BR": "Emoções", it: "Emozioni", es: "Emociones", fr: "Émotions" },
+  entertainment: { en: "Entertainment", de: "Unterhaltung", "pt-BR": "Entretenimento", it: "Intrattenimento", es: "Entretenimiento", fr: "Divertissement" },
+  environment: { en: "Environment", de: "Umwelt", "pt-BR": "Meio ambiente", it: "Ambiente", es: "Medio ambiente", fr: "Environnement" },
+  events: { en: "Events", de: "Ereignisse", "pt-BR": "Eventos", it: "Eventi", es: "Eventos", fr: "Événements" },
+  everyday: { en: "Everyday", de: "Alltag", "pt-BR": "Cotidiano", it: "Quotidiano", es: "Cotidiano", fr: "Quotidien" },
+  family: { en: "Family", de: "Familie", "pt-BR": "Família", it: "Famiglia", es: "Familia", fr: "Famille" },
+  feelings: { en: "Feelings", de: "Gefühle", "pt-BR": "Sentimentos", it: "Sentimenti", es: "Sentimientos", fr: "Sentiments" },
+  finance: { en: "Finance", de: "Finanzen", "pt-BR": "Finanças", it: "Finanza", es: "Finanzas", fr: "Finances" },
+  food: { en: "Food", de: "Essen", "pt-BR": "Comida", it: "Cibo", es: "Comida", fr: "Nourriture" },
+  "food and drink": { en: "Food and Drink", de: "Essen und Trinken", "pt-BR": "Comida e bebida", it: "Cibo e bevande", es: "Comida y bebida", fr: "Nourriture et boissons" },
+  frequency: { en: "Frequency", de: "Häufigkeit", "pt-BR": "Frequência", it: "Frequenza", es: "Frecuencia", fr: "Fréquence" },
+  furniture: { en: "Furniture", de: "Möbel", "pt-BR": "Móveis", it: "Mobili", es: "Muebles", fr: "Meubles" },
+  games: { en: "Games", de: "Spiele", "pt-BR": "Jogos", it: "Giochi", es: "Juegos", fr: "Jeux" },
+  general: { en: "General", de: "Allgemein", "pt-BR": "Geral", it: "Generale", es: "General", fr: "Général" },
+  geography: { en: "Geography", de: "Geografie", "pt-BR": "Geografia", it: "Geografia", es: "Geografía", fr: "Géographie" },
+  government: { en: "Government", de: "Regierung", "pt-BR": "Governo", it: "Governo", es: "Gobierno", fr: "Gouvernement" },
+  grammar: { en: "Grammar", de: "Grammatik", "pt-BR": "Gramática", it: "Grammatica", es: "Gramática", fr: "Grammaire" },
+  health: { en: "Health", de: "Gesundheit", "pt-BR": "Saúde", it: "Salute", es: "Salud", fr: "Santé" },
+  hobbies: { en: "Hobbies", de: "Hobbys", "pt-BR": "Hobbies", it: "Hobby", es: "Pasatiempos", fr: "Loisirs" },
+  home: { en: "Home", de: "Zuhause", "pt-BR": "Casa", it: "Casa", es: "Casa", fr: "Maison" },
+  information: { en: "Information", de: "Information", "pt-BR": "Informação", it: "Informazione", es: "Información", fr: "Information" },
+  jobs: { en: "Jobs", de: "Berufe", "pt-BR": "Trabalhos", it: "Lavori", es: "Trabajos", fr: "Emplois" },
+  language: { en: "Language", de: "Sprache", "pt-BR": "Idioma", it: "Lingua", es: "Idioma", fr: "Langue" },
+  law: { en: "Law", de: "Recht", "pt-BR": "Direito", it: "Diritto", es: "Derecho", fr: "Droit" },
+  learning: { en: "Learning", de: "Lernen", "pt-BR": "Aprendizagem", it: "Apprendimento", es: "Aprendizaje", fr: "Apprentissage" },
+  leisure: { en: "Leisure", de: "Freizeit", "pt-BR": "Lazer", it: "Tempo libero", es: "Ocio", fr: "Loisirs" },
+  life: { en: "Life", de: "Leben", "pt-BR": "Vida", it: "Vita", es: "Vida", fr: "Vie" },
+  location: { en: "Location", de: "Ort", "pt-BR": "Localização", it: "Posizione", es: "Ubicación", fr: "Lieu" },
+  material: { en: "Material", de: "Material", "pt-BR": "Material", it: "Materiale", es: "Material", fr: "Matériau" },
+  measurement: { en: "Measurement", de: "Messung", "pt-BR": "Medida", it: "Misura", es: "Medida", fr: "Mesure" },
+  media: { en: "Media", de: "Medien", "pt-BR": "Mídia", it: "Media", es: "Medios", fr: "Médias" },
+  money: { en: "Money", de: "Geld", "pt-BR": "Dinheiro", it: "Denaro", es: "Dinero", fr: "Argent" },
+  movement: { en: "Movement", de: "Bewegung", "pt-BR": "Movimento", it: "Movimento", es: "Movimiento", fr: "Mouvement" },
+  music: { en: "Music", de: "Musik", "pt-BR": "Música", it: "Musica", es: "Música", fr: "Musique" },
+  nature: { en: "Nature", de: "Natur", "pt-BR": "Natureza", it: "Natura", es: "Naturaleza", fr: "Nature" },
+  nouns: { en: "Nouns", de: "Substantive", "pt-BR": "Substantivos", it: "Sostantivi", es: "Sustantivos", fr: "Noms" },
+  numbers: { en: "Numbers", de: "Zahlen", "pt-BR": "Números", it: "Numeri", es: "Números", fr: "Nombres" },
+  objects: { en: "Objects", de: "Objekte", "pt-BR": "Objetos", it: "Oggetti", es: "Objetos", fr: "Objets" },
+  opinions: { en: "Opinions", de: "Meinungen", "pt-BR": "Opiniões", it: "Opinioni", es: "Opiniones", fr: "Opinions" },
+  other: { en: "Other", de: "Sonstiges", "pt-BR": "Outros", it: "Altro", es: "Otros", fr: "Autre" },
+  people: { en: "People", de: "Menschen", "pt-BR": "Pessoas", it: "Persone", es: "Personas", fr: "Personnes" },
+  personality: { en: "Personality", de: "Persönlichkeit", "pt-BR": "Personalidade", it: "Personalità", es: "Personalidad", fr: "Personnalité" },
+  places: { en: "Places", de: "Orte", "pt-BR": "Lugares", it: "Luoghi", es: "Lugares", fr: "Lieux" },
+  politics: { en: "Politics", de: "Politik", "pt-BR": "Política", it: "Politica", es: "Política", fr: "Politique" },
+  prepositions: { en: "Prepositions", de: "Präpositionen", "pt-BR": "Preposições", it: "Preposizioni", es: "Preposiciones", fr: "Prépositions" },
+  pronouns: { en: "Pronouns", de: "Pronomen", "pt-BR": "Pronomes", it: "Pronomi", es: "Pronombres", fr: "Pronoms" },
+  quality: { en: "Quality", de: "Qualität", "pt-BR": "Qualidade", it: "Qualità", es: "Calidad", fr: "Qualité" },
+  quantity: { en: "Quantity", de: "Menge", "pt-BR": "Quantidade", it: "Quantità", es: "Cantidad", fr: "Quantité" },
+  relationships: { en: "Relationships", de: "Beziehungen", "pt-BR": "Relações", it: "Relazioni", es: "Relaciones", fr: "Relations" },
+  religion: { en: "Religion", de: "Religion", "pt-BR": "Religião", it: "Religione", es: "Religión", fr: "Religion" },
+  school: { en: "School", de: "Schule", "pt-BR": "Escola", it: "Scuola", es: "Escuela", fr: "École" },
+  science: { en: "Science", de: "Wissenschaft", "pt-BR": "Ciência", it: "Scienza", es: "Ciencia", fr: "Science" },
+  shopping: { en: "Shopping", de: "Einkaufen", "pt-BR": "Compras", it: "Shopping", es: "Compras", fr: "Shopping" },
+  society: { en: "Society", de: "Gesellschaft", "pt-BR": "Sociedade", it: "Società", es: "Sociedad", fr: "Société" },
+  sound: { en: "Sound", de: "Klang", "pt-BR": "Som", it: "Suono", es: "Sonido", fr: "Son" },
+  sports: { en: "Sports", de: "Sport", "pt-BR": "Esportes", it: "Sport", es: "Deportes", fr: "Sports" },
+  state: { en: "State", de: "Zustand", "pt-BR": "Estado", it: "Stato", es: "Estado", fr: "État" },
+  technology: { en: "Technology", de: "Technologie", "pt-BR": "Tecnologia", it: "Tecnologia", es: "Tecnología", fr: "Technologie" },
+  time: { en: "Time", de: "Zeit", "pt-BR": "Tempo", it: "Tempo", es: "Tiempo", fr: "Temps" },
+  transport: { en: "Transport", de: "Transport", "pt-BR": "Transporte", it: "Trasporto", es: "Transporte", fr: "Transport" },
+  travel: { en: "Travel", de: "Reisen", "pt-BR": "Viagem", it: "Viaggi", es: "Viajes", fr: "Voyage" },
+  verbs: { en: "Verbs", de: "Verben", "pt-BR": "Verbos", it: "Verbi", es: "Verbos", fr: "Verbes" },
+  weather: { en: "Weather", de: "Wetter", "pt-BR": "Clima", it: "Meteo", es: "Clima", fr: "Météo" },
+  work: { en: "Work", de: "Arbeit", "pt-BR": "Trabalho", it: "Lavoro", es: "Trabajo", fr: "Travail" },
+  writing: { en: "Writing", de: "Schreiben", "pt-BR": "Escrita", it: "Scrittura", es: "Escritura", fr: "Écriture" }
 };
 
 export function I18nProvider({ children }: { children: ReactNode }) {
@@ -847,6 +1092,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     () => ({
       language,
       setLanguage,
+      categoryName: (category) => getCategoryName(language, category),
+      gradeName: (grade) => getGradeName(language, grade),
       languageName: (code) => getLanguageName(language, code),
       t: (key, variables) => translate(language, key, variables)
     }),
@@ -862,6 +1109,8 @@ export function useI18n(): I18nContextValue {
     return {
       language: "en",
       setLanguage: () => undefined,
+      categoryName: (category) => getCategoryName("en", category),
+      gradeName: (grade) => getGradeName("en", grade),
       languageName: (code) => getLanguageName("en", code),
       t: (key, variables) => translate("en", key, variables)
     };
@@ -879,12 +1128,27 @@ function getLanguageName(uiLanguage: LanguageCode, language: LanguageCode): stri
   return (getDictionaryLanguage(uiLanguage) && languageNames[getDictionaryLanguage(uiLanguage)]?.[language]) || languageNames.en[language];
 }
 
+function getGradeName(uiLanguage: LanguageCode, grade: DifficultyGrade): string {
+  const dictionaryLanguage = getDictionaryLanguage(uiLanguage);
+  return gradeNames[dictionaryLanguage][grade] ?? gradeNames.en[grade];
+}
+
+function getCategoryName(uiLanguage: LanguageCode, category: string): string {
+  const dictionaryLanguage = getDictionaryLanguage(uiLanguage);
+  const normalized = normalizeCategoryName(category);
+  return categoryNames[normalized]?.[dictionaryLanguage] ?? categoryNames[normalized]?.en ?? category;
+}
+
+function normalizeCategoryName(category: string): string {
+  return category.replace(/&/g, "and").replace(/\s+/g, " ").trim().toLowerCase();
+}
+
 function getDictionary(language: LanguageCode): Dictionary {
   return dictionaries[getDictionaryLanguage(language)];
 }
 
-function getDictionaryLanguage(language: LanguageCode): "en" | "de" | "pt-BR" | "it" | "fr" {
-  if (language === "de" || language === "pt-BR" || language === "it" || language === "fr") return language;
+function getDictionaryLanguage(language: LanguageCode): DictionaryLanguage {
+  if (language === "de" || language === "pt-BR" || language === "it" || language === "es" || language === "fr") return language;
   return "en";
 }
 

@@ -1,5 +1,6 @@
 import { DarkTheme, DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { StatusBar } from "expo-status-bar";
 import { AiSpeakingPracticeScreen } from "../screens/AiSpeakingPracticeScreen";
 import { AiWritingPracticeScreen } from "../screens/AiWritingPracticeScreen";
 import { CardDetailScreen } from "../screens/CardDetailScreen";
@@ -69,28 +70,31 @@ function ThemedNavigator() {
   }
 
   return (
-    <NavigationContainer theme={resolvedMode === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack.Navigator
-        initialRouteName={initialRoute}
-        screenOptions={{
-          contentStyle: { backgroundColor: theme.background },
-          headerShown: false
-        }}
-      >
-        <Stack.Screen name="Home" component={HomeScreen} options={{ title: "Lighthouse" }} />
-        <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ title: "Welcome" }} />
-        <Stack.Screen name="Learn" component={LearnScreen} options={{ title: "Learn" }} />
-        <Stack.Screen name="WordList" component={WordListScreen} options={{ title: "Word List" }} />
-        <Stack.Screen name="CardDetail" component={CardDetailScreen} options={{ title: "Card" }} />
-        <Stack.Screen name="PracticeHub" component={PracticeHubScreen} options={{ title: "Practice" }} />
-        <Stack.Screen name="DiscoveryPractice" component={DiscoveryPracticeScreen} options={{ title: "Discovery" }} />
-        <Stack.Screen name="Practice" component={PracticeScreen} options={{ title: "Flashcards" }} />
-        <Stack.Screen name="SentencePractice" component={SentencePracticeScreen} options={{ title: "Sentence Practice" }} />
-        <Stack.Screen name="AiWritingPractice" component={AiWritingPracticeScreen} options={{ title: "AI Writing" }} />
-        <Stack.Screen name="AiSpeakingPractice" component={AiSpeakingPracticeScreen} options={{ title: "AI Speaking" }} />
-        <Stack.Screen name="Stats" component={StatsScreen} options={{ title: "Progress" }} />
-        <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: "Settings" }} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <>
+      <StatusBar backgroundColor={theme.background} style={resolvedMode === "dark" ? "light" : "dark"} />
+      <NavigationContainer theme={resolvedMode === "dark" ? DarkTheme : DefaultTheme}>
+        <Stack.Navigator
+          initialRouteName={initialRoute}
+          screenOptions={{
+            contentStyle: { backgroundColor: theme.background },
+            headerShown: false
+          }}
+        >
+          <Stack.Screen name="Home" component={HomeScreen} options={{ title: "Lighthouse" }} />
+          <Stack.Screen name="Onboarding" component={OnboardingScreen} options={{ title: "Welcome" }} />
+          <Stack.Screen name="Learn" component={LearnScreen} options={{ title: "Learn" }} />
+          <Stack.Screen name="WordList" component={WordListScreen} options={{ title: "Word List" }} />
+          <Stack.Screen name="CardDetail" component={CardDetailScreen} options={{ title: "Card" }} />
+          <Stack.Screen name="PracticeHub" component={PracticeHubScreen} options={{ title: "Practice" }} />
+          <Stack.Screen name="DiscoveryPractice" component={DiscoveryPracticeScreen} options={{ title: "Discovery" }} />
+          <Stack.Screen name="Practice" component={PracticeScreen} options={{ title: "Flashcards" }} />
+          <Stack.Screen name="SentencePractice" component={SentencePracticeScreen} options={{ title: "Sentence Practice" }} />
+          <Stack.Screen name="AiWritingPractice" component={AiWritingPracticeScreen} options={{ title: "AI Writing" }} />
+          <Stack.Screen name="AiSpeakingPractice" component={AiSpeakingPracticeScreen} options={{ title: "AI Speaking" }} />
+          <Stack.Screen name="Stats" component={StatsScreen} options={{ title: "Progress" }} />
+          <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: "Settings" }} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </>
   );
 }
